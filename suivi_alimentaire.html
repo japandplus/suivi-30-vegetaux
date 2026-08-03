@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi alimentaire hebdomadaire</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2b4f38">
+<link rel="icon" type="image/png" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
+<style>
+  :root {
+    --creme: #f6f3ec;
+    --panneau: #ffffff;
+    --encre: #2c2a25;
+    --encre-douce: #6b6558;
+    --trait: #e2ddd0;
+    --vert-feuille: #3c6b4d;
+    --vert-feuille-fonce: #2b4f38;
+    --terre: #a6693f;
+    --rouge: #b23a3a;
+    --orange: #b3722a;
+    --bleu: #2d6291;
+    --vert-ok: #2f7a4f;
+    --aujourdhui-fond: #eef4ec;
+    --aujourdhui-trait: #3c6b4d;
+    --ombre: 0 1px 2px rgba(44, 42, 37, 0.06), 0 4px 14px rgba(44, 42, 37, 0.05);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--creme);
+    color: var(--encre);
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .enveloppe {
+    width: 95%;
+    max-width: 1900px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+  }
+
+  header.entete {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  header.entete h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 600;
+    font-size: 28px;
+    margin: 0;
+    color: var(--vert-feuille-fonce);
+    letter-spacing: 0.2px;
+  }
+
+  nav.onglets {
+    display: flex;
+    gap: 6px;
+    background: var(--panneau);
+    padding: 4px;
+    border-radius: 999px;
+    box-shadow: var(--ombre);
+  }
+
+  nav.onglets button {
+    border: none;
+    background: transparent;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--encre-douce);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  nav.onglets button.actif {
+    background: var(--vert-feuille);
+    color: #fff;
+  }
+
+  .entete-droite {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .selecteur-langue {
+    border: none;
+    background: var(--panneau);
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--encre-douce);
+    box-shadow: var(--ombre);
+    cursor: pointer;
+    appearance: auto;
+  }
+
+  section.page { display: none; }
+  section.page.actif { display: block; }
+
+  /* --- Barre du haut : compteur + alertes + gros bouton --- */
+
+  .barre-haut {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: var(--panneau);
+    border-radius: 16px;
+    padding: 18px 22px;
+    box-shadow: var(--ombre);
+    margin-bottom: 20px;
+  }
+
+  .bloc-compteur { min-width: 150px; flex: 0 1 220px; }
+
+  .bloc-compteur .etiquette {
+    font-size: 13px;
+    color: var(--encre-douce);
+    margin: 0 0 2px;
+  }
+
+  #valeurCompteur {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bloc-alertes {
+    flex: 1 1 380px;
+    min-width: 240px;
+    text-align: center;
+  }
+
+  .alerte-ligne {
+    font-size: 12.5px;
+    margin: 0 0 8px;
+    line-height: 1.5;
+  }
+  .alerte-ligne:last-child { margin-bottom: 0; }
+
+  .alerte-ligne .titre-alerte {
+    display: block;
+    color: var(--encre-douce);
+    font-weight: 600;
+    margin-bottom: 1px;
+  }
+
+  .alerte-ligne.historique .contenu { color: var(--rouge); }
+  .alerte-ligne.avenir .contenu { color: var(--orange); }
+
+  #boutonAjoutJour {
+    align-self: center;
+    background: var(--vert-feuille);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 26px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--ombre);
+    transition: background 0.15s, transform 0.05s;
+    white-space: nowrap;
+  }
+  #boutonAjoutJour:hover { background: var(--vert-feuille-fonce); }
+  #boutonAjoutJour:active { transform: translateY(1px); }
+
+  /* --- Grille des 7 jours --- */
+
+  .grille-jours {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(130px, 1fr));
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .colonne-jour { display: flex; flex-direction: column; min-width: 0; }
+
+  .entete-jour {
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--encre-douce);
+    padding: 6px 4px;
+  }
+
+  .colonne-jour.aujourdhui .entete-jour { color: var(--vert-feuille-fonce); }
+
+  .corps-jour {
+    background: var(--panneau);
+    border: 1px solid var(--trait);
+    border-radius: 12px;
+    padding: 8px;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: var(--ombre);
+  }
+
+  .colonne-jour.aujourdhui .corps-jour {
+    background: var(--aujourdhui-fond);
+    border-color: var(--aujourdhui-trait);
+  }
+
+  .item-aliment {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    background: #fff;
+    border: 1px solid var(--trait);
+    border-radius: 8px;
+    padding: 5px 6px 5px 9px;
+    font-size: 12.5px;
+  }
+
+  .item-aliment span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .item-aliment button {
+    border: none;
+    background: transparent;
+    color: var(--rouge);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+  .item-aliment button:hover { background: #f3e4e4; }
+
+  /* --- Badges vitamines et bulle de detail --- */
+
+  .badges-vitamines {
+    position: relative;
+    display: flex;
+    gap: 3px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .badge-vitamine {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 999px;
+    line-height: 1.5;
+  }
+  .badge-vitamine.vit-A  { background: #faeeda; color: #854f0b; }
+  .badge-vitamine.vit-B9 { background: #eaf3de; color: #3b6d11; }
+  .badge-vitamine.vit-C  { background: #e1f5ee; color: #0f6e56; }
+  .badge-vitamine.vit-D  { background: #f1efe8; color: #5f5e5a; }
+  .badge-vitamine.vit-E  { background: #eeedfe; color: #3c3489; }
+  .badge-vitamine.vit-K  { background: #e6f1fb; color: #0c447c; }
+
+  .bulle-vitamines {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    background: var(--encre);
+    color: #fff;
+    font-size: 11px;
+    padding: 6px 9px;
+    border-radius: 6px;
+    white-space: normal;
+    max-width: 220px;
+    margin-bottom: 6px;
+    transition: opacity 0.15s;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .badges-vitamines:hover .bulle-vitamines,
+  .badges-vitamines.tap-ouvert .bulle-vitamines {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* --- Bloc "vitamines couvertes cette semaine" --- */
+
+  .carte-vitamines {
+    background: var(--panneau);
+    border-radius: 16px;
+    padding: 18px 22px;
+    box-shadow: var(--ombre);
+    margin-bottom: 20px;
+  }
+  .etiquette-vitamines {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--encre-douce);
+    margin: 0;
+  }
+  .note-vitamines {
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--encre-douce);
+  }
+  .grille-vitamines {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px 22px;
+    margin-top: 12px;
+  }
+  .entete-vitamine {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-bottom: 3px;
+  }
+  .entete-vitamine .nb { color: var(--encre-douce); }
+  .barre-fond {
+    background: var(--creme);
+    border-radius: 999px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .barre-remplie {
+    background: var(--vert-feuille);
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.2s;
+  }
+
+  .bouton-petit-ajout {
+    margin-top: 6px;
+    width: 100%;
+    border: 1px dashed #c9c2b0;
+    background: transparent;
+    color: var(--encre-douce);
+    border-radius: 8px;
+    padding: 5px 0;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .bouton-petit-ajout:hover { border-color: var(--vert-feuille); color: var(--vert-feuille); }
+
+  /* --- Fenetre modale (choix d'un aliment) --- */
+
+  .fond-modale {
+    position: fixed; inset: 0;
+    background: rgba(44, 42, 37, 0.4);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 50;
+    padding: 16px;
+  }
+  .fond-modale.visible { display: flex; }
+
+  .boite-modale {
+    background: #fff;
+    border-radius: 14px;
+    width: 100%; max-width: 380px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    padding: 20px;
+  }
+  .boite-modale h2 { font-size: 16px; margin: 0 0 12px; }
+
+  .boite-modale input[type="text"] {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--trait);
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .boite-modale input[type="text"]:focus {
+    outline: 2px solid var(--vert-feuille);
+    outline-offset: 1px;
+  }
+
+  .liste-resultats {
+    list-style: none;
+    margin: 0 0 6px;
+    padding: 0;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--trait);
+    border-radius: 8px;
+  }
+  .liste-resultats li {
+    padding: 8px 10px;
+    font-size: 13.5px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--trait);
+  }
+  .liste-resultats li:last-child { border-bottom: none; }
+  .liste-resultats li:hover,
+  .liste-resultats li.survole { background: var(--aujourdhui-fond); }
+
+  .info-resultats { font-size: 12px; color: var(--encre-douce); margin: 0 0 12px; }
+
+  .rangee-boutons { display: flex; gap: 8px; justify-content: flex-end; }
+  .rangee-boutons button { padding: 8px 16px; border-radius: 8px; font-size: 13.5px; cursor: pointer; }
+  .btn-principal { background: var(--vert-feuille); color: #fff; border: none; }
+  .btn-principal:hover { background: var(--vert-feuille-fonce); }
+  .btn-secondaire { background: transparent; border: 1px solid var(--trait); color: var(--encre); }
+  .btn-secondaire:hover { border-color: #b7ae98; }
+
+  /* --- Avertissement --- */
+
+  .boite-avertissement { text-align: center; }
+  .boite-avertissement .icone { font-size: 30px; margin-bottom: 6px; }
+  .boite-avertissement p { font-size: 14px; color: var(--encre); margin: 0 0 16px; white-space: pre-line; }
+  .boite-avertissement .rangee-boutons { justify-content: center; }
+
+  /* --- Page Parametres --- */
+
+  .grille-parametres {
+    display: grid;
+    grid-template-columns: 1.1fr 1.4fr;
+    gap: 18px;
+  }
+  @media (max-width: 820px) {
+    .grille-parametres { grid-template-columns: 1fr; }
+  }
+
+  .carte {
+    background: var(--panneau);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: var(--ombre);
+  }
+  .carte h2 {
+    font-size: 15px;
+    margin: 0 0 4px;
+    color: var(--vert-feuille-fonce);
+  }
+  .carte p.description {
+    font-size: 12.5px;
+    color: var(--encre-douce);
+    margin: 0 0 14px;
+  }
+
+  .ligne-formulaire {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .ligne-formulaire input[type="text"] {
+    flex: 1;
+    padding: 9px 10px;
+    border: 1px solid var(--trait);
+    border-radius: 8px;
+    font-size: 13.5px;
+  }
+  .ligne-formulaire input[type="text"]:focus {
+    outline: 2px solid var(--vert-feuille);
+    outline-offset: 1px;
+  }
+  .ligne-formulaire button {
+    background: var(--vert-feuille);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .ligne-formulaire button:hover { background: var(--vert-feuille-fonce); }
+
+  #messageAjoutParam { font-size: 12px; min-height: 16px; margin: 0 0 12px; }
+  #messageAjoutParam.ok { color: var(--vert-ok); }
+  #messageAjoutParam.erreur { color: var(--rouge); }
+
+  .liste-gestion {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 380px;
+    overflow-y: auto;
+    border: 1px solid var(--trait);
+    border-radius: 10px;
+  }
+  .liste-gestion li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--trait);
+  }
+  .liste-gestion li:last-child { border-bottom: none; }
+  .liste-gestion button {
+    border: none;
+    background: transparent;
+    color: var(--rouge);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+  .liste-gestion button:hover { background: #f3e4e4; }
+
+  .liste-gestion .compte-pondere {
+    font-size: 10.5px;
+    color: var(--terre);
+    font-weight: 600;
+    margin-left: 6px;
+  }
+
+  .bloc-outils { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .bloc-outils button, .bloc-outils label.bouton-fichier {
+    text-align: left;
+    background: var(--creme);
+    border: 1px solid var(--trait);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--encre);
+    display: block;
+  }
+  .bloc-outils button:hover, .bloc-outils label.bouton-fichier:hover { border-color: var(--vert-feuille); }
+  .bloc-outils .danger { color: var(--rouge); }
+  .bloc-outils input[type="file"] { display: none; }
+
+  .puce-suggestion {
+    font-size: 12px;
+    color: var(--encre-douce);
+    line-height: 1.6;
+    background: var(--creme);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 12px;
+  }
+  .puce-suggestion b { color: var(--encre); }
+
+  #zoneMessageParam {
+    font-size: 12.5px;
+    margin-top: 10px;
+    min-height: 16px;
+  }
+  #zoneMessageParam.ok { color: var(--vert-ok); }
+  #zoneMessageParam.erreur { color: var(--rouge); }
+
+  footer.pied {
+    text-align: center;
+    color: var(--encre-douce);
+    font-size: 11.5px;
+    margin-top: 34px;
+  }
+</style>
+</head>
+<body>
+
+<div class="enveloppe">
+
+  <header class="entete">
+    <h1 data-i18n="titrePrincipal">🌱 Suivi alimentaire hebdomadaire</h1>
+    <div class="entete-droite">
+      <select id="selecteurLangue" class="selecteur-langue" aria-label="Langue / Language">
+        <option value="fr">🇫🇷 Français</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
+      <nav class="onglets">
+        <button id="ongletSemaine" class="actif" data-i18n="ongletSemaine" onclick="afficherPage('semaine')">Semaine</button>
+        <button id="ongletParametres" data-i18n="ongletParametres" onclick="afficherPage('parametres')">Paramètres</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============ PAGE SEMAINE ============ -->
+  <section id="pageSemaine" class="page actif">
+
+    <div class="barre-haut">
+      <div class="bloc-compteur">
+        <p class="etiquette" data-i18n="etiquetteCompteur">Aliments différents cette semaine</p>
+        <p id="valeurCompteur">0 / 30</p>
+      </div>
+
+      <div class="bloc-alertes">
+        <p class="alerte-ligne historique">
+          <span class="titre-alerte" data-i18n="titreAlerteHistorique">Aliments perdus au dernier décalage :</span>
+          <span class="contenu" id="texteAlimentsPerdusHistorique">Aucun aliment perdu au dernier décalage.</span>
+        </p>
+        <p class="alerte-ligne avenir">
+          <span class="titre-alerte" data-i18n="titreAlerteAvenir">Aliments qui seront perdus au prochain décalage :</span>
+          <span class="contenu" id="texteAlimentsAPerdre">Aucun aliment ne sera perdu au prochain décalage.</span>
+        </p>
+      </div>
+
+      <button id="boutonAjoutJour" data-i18n="boutonAjoutJour">+ Ajouter un aliment aujourd'hui</button>
+    </div>
+
+    <div class="carte-vitamines">
+      <p class="etiquette-vitamines">
+        <span data-i18n="titreVitamines">Vitamines couvertes cette semaine</span>
+        <span class="note-vitamines" data-i18n="noteVitamines">(estimation indicative, pas une donnée médicale)</span>
+      </p>
+      <div class="grille-vitamines" id="grilleVitamines"><!-- rempli en JS --></div>
+    </div>
+
+    <div class="grille-jours" id="grilleJours"><!-- rempli en JS --></div>
+
+  </section>
+
+  <!-- ============ PAGE PARAMETRES ============ -->
+  <section id="pageParametres" class="page">
+
+    <div class="grille-parametres">
+
+      <div class="carte">
+        <h2 data-i18n="titreAjouterListe">Ajouter un aliment à la liste</h2>
+        <p class="description" data-i18n="descAjouterListe">
+          Cet aliment deviendra choisissable dans la fenêtre d'ajout, sur la page Semaine.
+        </p>
+        <div class="ligne-formulaire">
+          <input type="text" id="champNouvelAliment" data-i18n-placeholder="placeholderNouvelAliment" placeholder="Ex : Kombucha" maxlength="60">
+          <button data-i18n="boutonAjouter" onclick="ajouterAlimentDepuisParametres()">Ajouter</button>
+        </div>
+        <p id="messageAjoutParam"></p>
+
+        <div class="puce-suggestion" id="suggestionParametres" data-i18n="suggestionParametres">
+          <b>Idées utiles que je propose :</b> tu peux aussi importer / exporter une sauvegarde
+          complète (liste + semaine) pour changer d'ordinateur ou garder une copie de sécurité —
+          voir le bloc « Sauvegarde » à droite. Note : un aliment que tu ajoutes toi-même n'aura
+          pas de badge vitamine automatique, la base de données n'étant pas exhaustive.
+        </div>
+      </div>
+
+      <div class="carte">
+        <h2 data-i18n="titreListeActuelle">Liste actuelle des aliments</h2>
+        <p class="description" id="descListeAliments">
+          <span id="compteurListeAliments">0</span> aliments. Recherche pour filtrer, croix pour supprimer.
+        </p>
+        <div class="ligne-formulaire">
+          <input type="text" id="champRechercheParam" data-i18n-placeholder="placeholderFiltre" placeholder="Filtrer la liste…" oninput="rafraichirListeGestion()">
+        </div>
+        <ul class="liste-gestion" id="listeGestionAliments"><!-- rempli en JS --></ul>
+
+        <div class="bloc-outils">
+          <button data-i18n="boutonReinitialiserListe" onclick="reinitialiserListeParDefaut()">↺ Réinitialiser la liste par défaut</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="grille-parametres" style="margin-top:18px;">
+
+      <div class="carte">
+        <h2 data-i18n="titreSauvegarde">Sauvegarde</h2>
+        <p class="description" data-i18n="descSauvegarde">
+          Les données restent dans ce navigateur. Exporte un fichier de sauvegarde pour la
+          transporter sur un autre ordinateur ou la garder en sécurité.
+        </p>
+        <div class="bloc-outils">
+          <button data-i18n="boutonExporter" onclick="exporterSauvegarde()">⭳ Exporter une sauvegarde (.json)</button>
+          <label class="bouton-fichier" for="champImportFichier" data-i18n="boutonImporter">⭱ Importer une sauvegarde…</label>
+          <input type="file" id="champImportFichier" accept="application/json" onchange="importerSauvegarde(event)">
+          <button class="danger" data-i18n="boutonViderSemaine" onclick="reinitialiserSemaine()">⚠ Vider la semaine en cours</button>
+        </div>
+        <p id="zoneMessageParam"></p>
+      </div>
+
+      <div class="carte">
+        <h2 data-i18n="titreApropos">À propos du comptage</h2>
+        <p class="description" data-i18n="descApropos">Quelques règles déjà actives dans le logiciel :</p>
+        <div class="puce-suggestion" style="margin-top:0;">
+          <span data-i18n="regleUnique">• Le même aliment ne compte qu'une fois sur toute la semaine.<br></span>
+          <span data-i18n="regleHerbes">• <b>Herbes, épices et thés/tisanes</b> comptent pour 0,25 dans le total sur 30.<br></span>
+          <span data-i18n="regleDoublon">• Un aliment déjà ajouté le même jour est refusé (message d'avertissement).<br></span>
+          <span data-i18n="regleListe">• Seul un aliment présent dans la liste peut être ajouté.<br></span>
+          <span data-i18n="regleBadges">• Les badges colorés indiquent les vitamines majeures d'un aliment (survol ou tap pour le détail).</span>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <footer class="pied" data-i18n="pied">Suivi alimentaire — fonctionne hors-ligne, aucune donnée envoyée sur internet.</footer>
+</div>
+
+<!-- ============ MODALE : choisir un aliment pour un jour ============ -->
+<div class="fond-modale" id="fondModaleAjout">
+  <div class="boite-modale">
+    <h2 id="titreModaleAjout">Ajouter un aliment</h2>
+    <input type="text" id="champRechercheModale" data-i18n-placeholder="placeholderRecherche" placeholder="Rechercher un aliment…" autocomplete="off">
+    <ul class="liste-resultats" id="listeResultatsModale"></ul>
+    <p class="info-resultats" id="infoResultatsModale"></p>
+    <div class="rangee-boutons">
+      <button class="btn-secondaire" data-i18n="boutonAnnuler" onclick="fermerModaleAjout()">Annuler</button>
+      <button class="btn-principal" data-i18n="boutonAjouterModale" onclick="validerModaleAjout()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODALE : avertissement ============ -->
+<div class="fond-modale" id="fondModaleAvertissement">
+  <div class="boite-modale boite-avertissement">
+    <div class="icone">⚠️</div>
+    <h2 id="titreAvertissement">Attention</h2>
+    <p id="texteAvertissement"></p>
+    <div class="rangee-boutons">
+      <button class="btn-principal" data-i18n="boutonCompris" onclick="fermerModaleAvertissement()">Compris</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Suivi alimentaire hebdomadaire — logique de l'application
+   Toutes les donnees sont stockees localement dans ce navigateur
+   (localStorage), rien n'est envoye sur internet.
+   ============================================================ */
+
+const CLE_DONNEES = "suivi_alimentaire_donnees";
+const CLE_LISTE_ALIMENTS = "suivi_alimentaire_liste_aliments";
+const CLE_ALIMENTS_SUPPRIMES = "suivi_alimentaire_aliments_supprimes";
+const CLE_LANGUE = "suivi_alimentaire_langue";
+
+/* ============================================================
+   Systeme de langue (i18n)
+   ============================================================ */
+
+let langueActuelle = "fr";
+
+const TRADUCTIONS = {
+  fr: {
+    titrePrincipal: "🌱 Suivi alimentaire hebdomadaire",
+    ongletSemaine: "Semaine",
+    ongletParametres: "Paramètres",
+
+    etiquetteCompteur: "Aliments différents cette semaine",
+    titreAlerteHistorique: "Aliments perdus au dernier décalage :",
+    alerteHistoriqueVide: "Aucun aliment perdu au dernier décalage.",
+    titreAlerteAvenir: "Aliments qui seront perdus au prochain décalage :",
+    alerteAvenirVide: "Aucun aliment ne sera perdu au prochain décalage.",
+    boutonAjoutJour: "+ Ajouter un aliment aujourd'hui",
+    boutonAjoutPetit: "+ Ajouter",
+
+    titreVitamines: "Vitamines couvertes cette semaine",
+    noteVitamines: "(estimation indicative, pas une donnée médicale)",
+    joursSur7: "{{n}} / 7 jours",
+
+    titreModaleAvecDate: "Ajouter un aliment — {{date}}",
+    placeholderRecherche: "Rechercher un aliment…",
+    resultatsCount: "{{n}} résultat(s)",
+    aucunResultat: "Aucun aliment ne correspond dans la liste",
+    boutonAnnuler: "Annuler",
+    boutonAjouterModale: "Ajouter",
+
+    titreAttention: "Attention",
+    boutonCompris: "Compris",
+    avertissementInconnuTitre: "Aliment inconnu",
+    avertissementInconnuMessage: "Cet aliment n'existe pas dans la liste.\nChoisis-le dans les résultats proposés, ou ajoute-le d'abord depuis la page Paramètres.",
+    avertissementDoublonTitre: "Aliment déjà ajouté",
+    avertissementDoublonMessage: "« {{aliment}} » a déjà été ajouté pour le {{date}}.",
+
+    titreAjouterListe: "Ajouter un aliment à la liste",
+    descAjouterListe: "Cet aliment deviendra choisissable dans la fenêtre d'ajout, sur la page Semaine.",
+    placeholderNouvelAliment: "Ex : Kombucha",
+    boutonAjouter: "Ajouter",
+    msgEcrisNom: "Écris un nom d'aliment avant d'ajouter.",
+    msgDejaListe: "« {{aliment}} » est déjà dans la liste.",
+    msgAjouteListe: "« {{aliment}} » a été ajouté à la liste.",
+    suggestionParametres: "<b>Idées utiles que je propose :</b> tu peux aussi importer / exporter une sauvegarde complète (liste + semaine) pour changer d'ordinateur ou garder une copie de sécurité — voir le bloc « Sauvegarde » à droite. Note : un aliment que tu ajoutes toi-même n'aura pas de badge vitamine automatique, la base de données n'étant pas exhaustive.",
+
+    titreListeActuelle: "Liste actuelle des aliments",
+    descListeCompte: "{{n}} aliments. Recherche pour filtrer, croix pour supprimer.",
+    placeholderFiltre: "Filtrer la liste…",
+    boutonSupprimer: "Supprimer",
+    compteBadge: "compte pour {{poids}}",
+    boutonReinitialiserListe: "↺ Réinitialiser la liste par défaut",
+    confirmReset: "Remettre la liste des aliments telle qu'à l'origine ?\nTes ajouts personnels dans cette liste seront perdus (la semaine en cours n'est pas touchée).",
+
+    titreSauvegarde: "Sauvegarde",
+    descSauvegarde: "Les données restent dans ce navigateur. Exporte un fichier de sauvegarde pour la transporter sur un autre ordinateur ou la garder en sécurité.",
+    boutonExporter: "⭳ Exporter une sauvegarde (.json)",
+    boutonImporter: "⭱ Importer une sauvegarde…",
+    boutonViderSemaine: "⚠ Vider la semaine en cours",
+    confirmImport: "Importer cette sauvegarde va remplacer la liste d'aliments et la semaine en cours. Continuer ?",
+    confirmViderSemaine: "Vider tous les aliments de la semaine en cours ? Cette action est irréversible.",
+    msgExportOk: "Sauvegarde exportée.",
+    msgImportOk: "Sauvegarde importée avec succès.",
+    msgImportErreur: "Ce fichier ne semble pas être une sauvegarde valide.",
+    msgSemaineVidee: "La semaine en cours a été vidée.",
+
+    titreApropos: "À propos du comptage",
+    descApropos: "Quelques règles déjà actives dans le logiciel :",
+    regleUnique: "• Le même aliment ne compte qu'une fois sur toute la semaine.<br>",
+    regleHerbes: "• <b>Herbes, épices et thés/tisanes</b> comptent pour 0,25 dans le total sur 30.<br>",
+    regleDoublon: "• Un aliment déjà ajouté le même jour est refusé (message d'avertissement).<br>",
+    regleListe: "• Seul un aliment présent dans la liste peut être ajouté.<br>",
+    regleBadges: "• Les badges colorés indiquent les vitamines majeures d'un aliment (survol ou tap pour le détail).",
+
+    pied: "Suivi alimentaire — fonctionne hors-ligne, aucune donnée envoyée sur internet.",
+
+    vitamineA: "Vitamine A",
+    vitamineB9: "Vitamine B9 (folates)",
+    vitamineC: "Vitamine C",
+    vitamineD: "Vitamine D",
+    vitamineE: "Vitamine E",
+    vitamineK: "Vitamine K",
+
+    aujourdhui: " (aujourd'hui)",
+    localeDate: "fr-FR",
+  },
+
+  en: {
+    titrePrincipal: "🌱 Weekly Food Tracker",
+    ongletSemaine: "Week",
+    ongletParametres: "Settings",
+
+    etiquetteCompteur: "Different foods this week",
+    titreAlerteHistorique: "Foods lost at the last shift:",
+    alerteHistoriqueVide: "No food lost at the last shift.",
+    titreAlerteAvenir: "Foods that will be lost at the next shift:",
+    alerteAvenirVide: "No food will be lost at the next shift.",
+    boutonAjoutJour: "+ Add a food today",
+    boutonAjoutPetit: "+ Add",
+
+    titreVitamines: "Vitamins covered this week",
+    noteVitamines: "(indicative estimate, not medical data)",
+    joursSur7: "{{n}} / 7 days",
+
+    titreModaleAvecDate: "Add a food — {{date}}",
+    placeholderRecherche: "Search for a food…",
+    resultatsCount: "{{n}} result(s)",
+    aucunResultat: "No food matches the list",
+    boutonAnnuler: "Cancel",
+    boutonAjouterModale: "Add",
+
+    titreAttention: "Warning",
+    boutonCompris: "Got it",
+    avertissementInconnuTitre: "Unknown food",
+    avertissementInconnuMessage: "This food isn't in the list.\nPick it from the suggested results, or add it first from the Settings page.",
+    avertissementDoublonTitre: "Food already added",
+    avertissementDoublonMessage: "\u201c{{aliment}}\u201d has already been added for {{date}}.",
+
+    titreAjouterListe: "Add a food to the list",
+    descAjouterListe: "This food will become available in the search window, on the Week page.",
+    placeholderNouvelAliment: "E.g.: Kombucha",
+    boutonAjouter: "Add",
+    msgEcrisNom: "Type a food name before adding.",
+    msgDejaListe: "\u201c{{aliment}}\u201d is already in the list.",
+    msgAjouteListe: "\u201c{{aliment}}\u201d has been added to the list.",
+    suggestionParametres: "<b>Useful ideas I'm suggesting:</b> you can also import / export a full backup (list + week) to switch computers or keep a safety copy — see the \u201cBackup\u201d block on the right. Note: a food you add yourself won't get an automatic vitamin badge, since the database isn't exhaustive.",
+
+    titreListeActuelle: "Current food list",
+    descListeCompte: "{{n}} foods. Search to filter, cross to delete.",
+    placeholderFiltre: "Filter the list…",
+    boutonSupprimer: "Delete",
+    compteBadge: "counts as {{poids}}",
+    boutonReinitialiserListe: "↺ Reset to default list",
+    confirmReset: "Restore the food list to its original state?\nYour personal additions to this list will be lost (your current week is not affected).",
+
+    titreSauvegarde: "Backup",
+    descSauvegarde: "Data stays in this browser. Export a backup file to move it to another computer or keep it safe.",
+    boutonExporter: "⭳ Export a backup (.json)",
+    boutonImporter: "⭱ Import a backup…",
+    boutonViderSemaine: "⚠ Clear the current week",
+    confirmImport: "Importing this backup will replace the food list and the current week. Continue?",
+    confirmViderSemaine: "Clear all foods from the current week? This action is irreversible.",
+    msgExportOk: "Backup exported.",
+    msgImportOk: "Backup imported successfully.",
+    msgImportErreur: "This file doesn't look like a valid backup.",
+    msgSemaineVidee: "The current week has been cleared.",
+
+    titreApropos: "About the counting",
+    descApropos: "A few rules already active in the software:",
+    regleUnique: "• The same food only counts once across the whole week.<br>",
+    regleHerbes: "• <b>Herbs, spices and teas/infusions</b> count as 0.25 toward the total out of 30.<br>",
+    regleDoublon: "• A food already added on the same day is refused (warning message).<br>",
+    regleListe: "• Only a food already in the list can be added.<br>",
+    regleBadges: "• Colored badges indicate a food's major vitamins (hover or tap for details).",
+
+    pied: "Food tracker — works offline, no data sent over the internet.",
+
+    vitamineA: "Vitamin A",
+    vitamineB9: "Vitamin B9 (folate)",
+    vitamineC: "Vitamin C",
+    vitamineD: "Vitamin D",
+    vitamineE: "Vitamin E",
+    vitamineK: "Vitamin K",
+
+    aujourdhui: " (today)",
+    localeDate: "en-US",
+  },
+};
+
+function t(cle, params) {
+  const dict = TRADUCTIONS[langueActuelle] || TRADUCTIONS.fr;
+  let texte = dict[cle] !== undefined ? dict[cle] : (TRADUCTIONS.fr[cle] || cle);
+  if (params) {
+    Object.keys(params).forEach(k => {
+      texte = texte.replace(new RegExp(`{{${k}}}`, "g"), params[k]);
+    });
+  }
+  return texte;
+}
+
+function chargerLangue() {
+  const stockee = localStorage.getItem(CLE_LANGUE);
+  return (stockee === "en" || stockee === "fr") ? stockee : "fr";
+}
+
+function changerLangue(langue) {
+  langueActuelle = (langue === "en") ? "en" : "fr";
+  localStorage.setItem(CLE_LANGUE, langueActuelle);
+  appliquerTraductionsStatiques();
+  rafraichirTout();
+  rafraichirListeGestion();
+}
+
+function appliquerTraductionsStatiques() {
+  document.documentElement.lang = langueActuelle;
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    el.innerHTML = t(el.getAttribute("data-i18n"));
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    el.placeholder = t(el.getAttribute("data-i18n-placeholder"));
+  });
+  const selecteur = document.getElementById("selecteurLangue");
+  if (selecteur) selecteur.value = langueActuelle;
+}
+
+// Aliments qui comptent pour plus d'une unite dans le total sur 30
+// (cle = nom en minuscules ; valeur = nombre de points). Par defaut 1.
+const PONDERATION_ALIMENTS = {
+  // Herbes aromatiques : 0.25 point
+  "menthe": 0.25, "basilic": 0.25, "thym": 0.25, "romarin": 0.25,
+  "persil": 0.25, "coriandre": 0.25, "ciboulette": 0.25, "origan": 0.25,
+  "sauge": 0.25, "estragon": 0.25, "aneth": 0.25, "laurier": 0.25,
+  "marjolaine": 0.25, "verveine": 0.25, "mélisse": 0.25,
+
+  // Epices : 0.25 point
+  "poivre noir": 0.25, "poivre blanc": 0.25, "poivre vert": 0.25,
+  "poivre rose": 0.25, "baie de genièvre": 0.25, "piment": 0.25,
+  "citronnelle": 0.25, "gingembre": 0.25, "cannelle": 0.25,
+  "anis étoilé": 0.25,
+
+  // Thes et tisanes : 0.25 point
+  "tilleul": 0.25, "camomille": 0.25, "thé vert": 0.25, "thé noir": 0.25,
+  "thé blanc": 0.25, "thé oolong": 0.25, "rooibos": 0.25, "maté": 0.25,
+  "réglisse": 0.25, "eucalyptus": 0.25, "valériane": 0.25,
+  "passiflore": 0.25, "ortie": 0.25, "pissenlit": 0.25, "bardane": 0.25,
+  "fenugrec": 0.25, "achillée millefeuille": 0.25
+};
+
+// Vitamines majeures suivies par l'application. Le pourcentage de
+// couverture hebdomadaire se base sur ces 6 vitamines uniquement.
+const VITAMINES_SUIVIES = [
+  { code: "A",  label: "Vitamine A" },
+  { code: "B9", label: "Vitamine B9 (folates)" },
+  { code: "C",  label: "Vitamine C" },
+  { code: "D",  label: "Vitamine D" },
+  { code: "E",  label: "Vitamine E" },
+  { code: "K",  label: "Vitamine K" }
+];
+
+// Association aliment -> vitamines dont il est une source notable.
+// Information indicative et generale (pas une donnee medicale chiffree).
+// Cle = nom de l'aliment en minuscules. Un aliment absent de cette liste
+// (par exemple un aliment ajoute depuis la page Parametres) n'affichera
+// simplement aucun badge.
+const VITAMINS_ALIMENTS = {
+  "abricot": ["A","C"], "ail": ["C"], "ananas": ["C"],
+  "artichaut": ["B9","C","K"], "asperge": ["A","B9","K"], "aubergine": ["B9"],
+  "avocat": ["B9","E","K"], "banane": ["C"], "betterave": ["B9"],
+  "blette": ["A","C","K"], "brocoli": ["A","B9","C","K"], "cantaloup": ["A","C"],
+  "carotte": ["A"], "céleri branche": ["K"], "céleri rave": ["C"],
+  "cerise": ["C"], "champignon de paris": ["D"], "chou blanc": ["C","K"],
+  "chou fleur": ["C"], "chou rouge": ["C","K"], "chou-rave": ["C"],
+  "chou de bruxelles": ["B9","C","K"], "citron": ["C"], "citrouille": ["A"],
+  "clémentine": ["C"], "concombre": ["K"], "coing": ["C"], "cornichon": ["K"],
+  "courge butternut": ["A"], "courgette": ["C"], "cresson": ["A","C","K"],
+  "datte": ["B9"], "echalote": ["C"], "endive": ["A","K"],
+  "épinard": ["A","B9","K"], "fenouil": ["C"], "figue": ["K"], "fraise": ["C"],
+  "framboise": ["C"], "fruit de la passion": ["A","C"], "goyave": ["C"],
+  "grenade": ["C"], "groseille": ["C"], "haricot vert": ["B9","C","K"],
+  "kaki": ["A","C"], "kiwi": ["C","E","K"], "laitue": ["A","K"],
+  "lentille verte": ["B9"], "litchi": ["C"], "mâche": ["A","B9","C"],
+  "mandarine": ["C"], "mangue": ["A","C"], "melon": ["A","C"],
+  "mirabelle": ["C"], "mûre": ["C"], "myrtille": ["C","E"], "navet": ["C"],
+  "nectarine": ["C"], "oignon": ["C"], "olive": ["E"], "orange": ["C","B9"],
+  "pamplemousse": ["C"], "panais": ["B9"], "papaye": ["A","C"],
+  "pastèque": ["A","C"], "patate douce": ["A"], "pêche": ["C"],
+  "petit pois": ["B9","C","K"], "poireau": ["B9","K"], "pois chiche": ["B9"],
+  "pois mange-tout": ["C","K"], "poivron": ["A","C"], "pomme de terre": ["C"],
+  "potiron": ["A"], "prune": ["C"], "pruneau": ["K"], "quetsche": ["C"],
+  "radis": ["C"], "daikon": ["C"], "raisin": ["K"], "rhubarbe": ["C","K"],
+  "roquette": ["A","C","K"], "rutabaga": ["C"], "salade verte": ["A","K"],
+  "tomate": ["A","C"], "yuzu": ["C"], "amande": ["E"],
+  "cacahuète": ["E","B9"], "châtaigne": ["C"], "faîne": ["E"],
+  "noisette": ["E"], "noix": ["E"], "noix de cajou": ["B9"],
+  "noix de macadamia": ["E"], "noix de pécan": ["E"], "noix du brésil": ["E"],
+  "pignon de pin": ["E"], "pistache": ["E","B9"], "avoine": ["B9"],
+  "blé": ["B9"], "maïs": ["A"], "quinoa": ["B9"], "soja": ["B9","K"],
+  "wakame": ["A","K"], "nori": ["A","C"], "kombu": ["K","B9"],
+  "edamame": ["B9","K","C"], "capucine": ["C"], "fleur d'ail": ["C"],
+  "fleur d'hibiscus": ["C"], "fleur de courgette": ["A"],
+  "fleur de sureau": ["C"], "pâquerette": ["C"], "pensée": ["C"],
+  "rose comestible": ["C"], "souci (calendula)": ["A"], "violette": ["C"],
+  "menthe": ["A","C"], "basilic": ["A","K"], "thym": ["A","C"],
+  "persil": ["A","C","K"], "coriandre": ["A","K"], "ciboulette": ["A","C","K"],
+  "origan": ["K"], "aneth": ["A","C"], "piment": ["A","C"],
+  "baie de goji": ["A","C"], "canneberge": ["C"], "airelle": ["C"],
+  "baie de sureau": ["C"], "argousier": ["C","E"], "gingembre": ["C"],
+  "ortie": ["A","C","K"], "pissenlit": ["A","C","K"], "fenugrec": ["B9"]
+};
+
+// Traduction des noms d'aliments (cle = nom francais canonique en
+// minuscules ; valeur = nom affiche en anglais). Les donnees internes
+// (semaine, liste, vitamines, ponderation) restent toujours en francais ;
+// seul l'affichage change selon la langue choisie. Un aliment ajoute
+// manuellement par l'utilisateur et absent d'ici s'affiche simplement
+// dans son nom d'origine, dans les deux langues.
+const NOMS_ALIMENTS_EN = {
+  "abricot":"Apricot","ail":"Garlic","ananas":"Pineapple","artichaut":"Artichoke",
+  "asperge":"Asparagus","aubergine":"Eggplant","avocat":"Avocado","bambou":"Bamboo shoot",
+  "banane":"Banana","betterave":"Beet","blette":"Swiss chard","brocoli":"Broccoli",
+  "cantaloup":"Cantaloupe","carotte":"Carrot","céleri branche":"Celery",
+  "céleri rave":"Celeriac","cerise":"Cherry","champignon de paris":"Button mushroom",
+  "chou blanc":"White cabbage","chou fleur":"Cauliflower","chou rouge":"Red cabbage",
+  "chou-rave":"Kohlrabi","chou de bruxelles":"Brussels sprout","citron":"Lemon",
+  "citrouille":"Pumpkin","clémentine":"Clementine","concombre":"Cucumber","coing":"Quince",
+  "cornichon":"Gherkin","courge butternut":"Butternut squash","courgette":"Zucchini",
+  "cresson":"Watercress","datte":"Date","echalote":"Shallot","endive":"Endive",
+  "épinard":"Spinach","fenouil":"Fennel","figue":"Fig","fraise":"Strawberry",
+  "framboise":"Raspberry","fruit de la passion":"Passion fruit","goyave":"Guava",
+  "grenade":"Pomegranate","groseille":"Redcurrant","haricot vert":"Green bean",
+  "kaki":"Persimmon","kiwi":"Kiwi","laitue":"Lettuce","lentille verte":"Green lentil",
+  "litchi":"Lychee","mâche":"Lamb's lettuce","mandarine":"Mandarin","mangue":"Mango",
+  "melon":"Melon","mirabelle":"Mirabelle plum","mûre":"Blackberry","myrtille":"Blueberry",
+  "navet":"Turnip","nectarine":"Nectarine","noix de coco":"Coconut","oignon":"Onion",
+  "olive":"Olive","orange":"Orange","pamplemousse":"Grapefruit","panais":"Parsnip",
+  "papaye":"Papaya","pastèque":"Watermelon","patate douce":"Sweet potato","pêche":"Peach",
+  "petit pois":"Pea","poire":"Pear","poireau":"Leek","pois chiche":"Chickpea",
+  "pois mange-tout":"Snow pea","poivron":"Bell pepper","pomme":"Apple",
+  "pomme de terre":"Potato","potiron":"Winter squash","prune":"Plum","pruneau":"Prune",
+  "quetsche":"Damson plum","radis":"Radish","daikon":"Daikon radish","raisin":"Grape",
+  "rhubarbe":"Rhubarb","roquette":"Arugula","rutabaga":"Rutabaga",
+  "salade verte":"Green salad","salsifis":"Salsify","tomate":"Tomato",
+  "topinambour":"Jerusalem artichoke","yuzu":"Yuzu",
+
+  "amande":"Almond","cacahuète":"Peanut","châtaigne":"Chestnut","faîne":"Beechnut",
+  "noisette":"Hazelnut","noix":"Walnut","noix de cajou":"Cashew",
+  "noix de macadamia":"Macadamia nut","noix de pécan":"Pecan",
+  "noix du brésil":"Brazil nut","pignon de pin":"Pine nut","pistache":"Pistachio",
+
+  "avoine":"Oat","blé":"Wheat","boulgour":"Bulgur","epeautre":"Spelt","kamut":"Kamut",
+  "maïs":"Corn","millet":"Millet","orge":"Barley","quinoa":"Quinoa","riz":"Rice",
+  "sarrasin":"Buckwheat","seigle":"Rye","semoule":"Semolina",
+
+  "soja":"Soybean","edamame":"Edamame","wakame":"Wakame","nori":"Nori","kombu":"Kombu",
+
+  "bourrache":"Borage","capucine":"Nasturtium","fleur d'ail":"Garlic flower",
+  "fleur d'hibiscus":"Hibiscus flower","fleur de camomille":"Chamomile flower",
+  "fleur de courgette":"Zucchini flower","fleur de lavande":"Lavender flower",
+  "fleur de sureau":"Elderflower","pâquerette":"Daisy","pensée":"Pansy",
+  "rose comestible":"Edible rose","souci (calendula)":"Marigold (calendula)",
+  "violette":"Violet",
+
+  "menthe":"Mint","basilic":"Basil","thym":"Thyme","romarin":"Rosemary",
+  "persil":"Parsley","coriandre":"Cilantro","ciboulette":"Chives","origan":"Oregano",
+  "sauge":"Sage","estragon":"Tarragon","aneth":"Dill","laurier":"Bay leaf",
+  "marjolaine":"Marjoram","verveine":"Verbena","mélisse":"Lemon balm",
+
+  "poivre noir":"Black pepper","poivre blanc":"White pepper","poivre vert":"Green peppercorn",
+  "poivre rose":"Pink peppercorn","baie de genièvre":"Juniper berry",
+  "piment":"Chili pepper","citronnelle":"Lemongrass","baie de goji":"Goji berry",
+  "canneberge":"Cranberry","airelle":"Bilberry","baie de sureau":"Elderberry",
+  "argousier":"Sea buckthorn","agar-agar":"Agar-agar",
+
+  "tilleul":"Linden (lime blossom)","camomille":"Chamomile","thé vert":"Green tea",
+  "thé noir":"Black tea","thé blanc":"White tea","thé oolong":"Oolong tea",
+  "rooibos":"Rooibos","maté":"Yerba mate","gingembre":"Ginger","réglisse":"Licorice",
+  "anis étoilé":"Star anise","cannelle":"Cinnamon","eucalyptus":"Eucalyptus",
+  "valériane":"Valerian","passiflore":"Passionflower","ortie":"Nettle",
+  "pissenlit":"Dandelion","bardane":"Burdock","fenugrec":"Fenugreek",
+  "achillée millefeuille":"Yarrow",
+};
+
+function nomAffiche(aliment) {
+  if (langueActuelle !== "en") return aliment;
+  return NOMS_ALIMENTS_EN[aliment.trim().toLowerCase()] || aliment;
+}
+
+const ALIMENTS_PAR_DEFAUT = [
+  "Abricot","Ail","Ananas","Artichaut","Asperge","Aubergine","Avocat","Bambou","Banane",
+  "Betterave","Blette","Brocoli","Cantaloup","Carotte","Céleri branche",
+  "Céleri rave","Cerise","Champignon de Paris","Chou blanc","Chou fleur",
+  "Chou rouge","Chou-rave","Chou de Bruxelles","Citron","Citrouille",
+  "Clémentine","Concombre","Coing","Cornichon","Courge butternut","Courgette",
+  "Cresson","Datte","Echalote","Endive","Épinard","Fenouil","Figue","Fraise",
+  "Framboise","Fruit de la passion","Goyave","Grenade","Groseille",
+  "Haricot vert","Kaki","Kiwi","Laitue","Lentille verte","Litchi","Mâche",
+  "Mandarine","Mangue","Melon","Mirabelle","Mûre","Myrtille","Navet",
+  "Nectarine","Noix de coco","Oignon","Olive","Orange","Pamplemousse",
+  "Panais","Papaye","Pastèque","Patate douce","Pêche","Petit pois","Poire",
+  "Poireau","Pois chiche","Pois mange-tout","Poivron","Pomme",
+  "Pomme de terre","Potiron","Prune","Pruneau","Quetsche","Radis","Daikon",
+  "Raisin","Rhubarbe","Roquette","Rutabaga","Salade verte","Salsifis",
+  "Tomate","Topinambour","Yuzu",
+  "Amande","Cacahuète","Châtaigne","Faîne","Noisette","Noix","Noix de cajou",
+  "Noix de macadamia","Noix de pécan","Noix du Brésil","Pignon de pin","Pistache",
+  "Avoine","Blé","Boulgour","Epeautre","Kamut","Maïs","Millet","Orge",
+  "Quinoa","Riz","Sarrasin","Seigle","Semoule",
+  "Soja","Edamame","Wakame","Nori","Kombu",
+  "Bourrache","Capucine","Fleur d'ail","Fleur d'hibiscus","Fleur de camomille",
+  "Fleur de courgette","Fleur de lavande","Fleur de sureau","Pâquerette",
+  "Pensée","Rose comestible","Souci (Calendula)","Violette",
+  "Menthe","Basilic","Thym","Romarin","Persil","Coriandre","Ciboulette",
+  "Origan","Sauge","Estragon","Aneth","Laurier","Marjolaine","Verveine","Mélisse",
+  "Poivre noir","Poivre blanc","Poivre vert","Poivre rose","Baie de genièvre",
+  "Piment","Citronnelle","Baie de goji","Canneberge","Airelle","Baie de sureau",
+  "Argousier","Agar-agar",
+  "Tilleul","Camomille","Thé vert","Thé noir","Thé blanc","Thé oolong",
+  "Rooibos","Maté","Gingembre","Réglisse","Anis étoilé","Cannelle",
+  "Eucalyptus","Valériane","Passiflore","Ortie","Pissenlit","Bardane",
+  "Fenugrec","Achillée millefeuille"
+];
+
+/* ---------- Etat en memoire ---------- */
+
+let listeAliments = [];      // tableau de chaines
+let jours = [[],[],[],[],[],[],[]]; // 7 tableaux de chaines (Jour1..Jour7)
+let derniereDate = null;     // "YYYY-MM-DD"
+let alimentsPerdusHistorique = [];
+
+let jourCibleModale = null;  // index du jour vise par la modale d'ajout
+let resultatsModaleActuels = [];
+let indexSurvoleModale = -1;
+
+/* ---------- Utilitaires date ---------- */
+
+function dateDuJourStr() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+function ecartEnJours(dateAvantStr, dateApresStr) {
+  const [a1,m1,j1] = dateAvantStr.split("-").map(Number);
+  const [a2,m2,j2] = dateApresStr.split("-").map(Number);
+  const avant = Date.UTC(a1, m1 - 1, j1);
+  const apres = Date.UTC(a2, m2 - 1, j2);
+  return Math.round((apres - avant) / 86400000);
+}
+
+/* ---------- Chargement / sauvegarde ---------- */
+
+function chargerAlimentsSupprimes() {
+  try {
+    const tab = JSON.parse(localStorage.getItem(CLE_ALIMENTS_SUPPRIMES) || "[]");
+    return Array.isArray(tab) ? tab : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function sauvegarderAlimentsSupprimes(liste) {
+  localStorage.setItem(CLE_ALIMENTS_SUPPRIMES, JSON.stringify(liste));
+}
+
+function chargerListeAliments() {
+  const brut = localStorage.getItem(CLE_LISTE_ALIMENTS);
+  if (brut) {
+    try {
+      const tab = JSON.parse(brut);
+      if (Array.isArray(tab) && tab.length) {
+        // Fusion automatique : tout nouvel aliment ajoute a la liste par
+        // defaut du code (mise a jour du logiciel) est ajoute ici, sans
+        // jamais retirer les aliments deja presents chez l'utilisateur
+        // (ni ses ajouts personnels), et SANS jamais reintroduire un
+        // aliment que l'utilisateur a supprime volontairement (memorise
+        // dans CLE_ALIMENTS_SUPPRIMES).
+        const clesExistantes = new Set(tab.map(a => a.trim().toLowerCase()));
+        const clesSupprimees = new Set(chargerAlimentsSupprimes());
+        const nouveaux = ALIMENTS_PAR_DEFAUT.filter(
+          a => !clesExistantes.has(a.trim().toLowerCase()) && !clesSupprimees.has(a.trim().toLowerCase())
+        );
+        if (nouveaux.length) {
+          const fusion = tab.concat(nouveaux);
+          localStorage.setItem(CLE_LISTE_ALIMENTS, JSON.stringify(fusion));
+          return fusion;
+        }
+        return tab;
+      }
+    } catch (e) { /* ignore, on retombe sur la liste par defaut */ }
+  }
+  const parDefaut = [...ALIMENTS_PAR_DEFAUT];
+  localStorage.setItem(CLE_LISTE_ALIMENTS, JSON.stringify(parDefaut));
+  return parDefaut;
+}
+
+function sauvegarderListeAliments() {
+  localStorage.setItem(CLE_LISTE_ALIMENTS, JSON.stringify(listeAliments));
+}
+
+function chargerDonnees() {
+  const brut = localStorage.getItem(CLE_DONNEES);
+  if (brut) {
+    try {
+      const data = JSON.parse(brut);
+      if (Array.isArray(data.jours) && data.jours.length === 7 && data.derniereDate) {
+        return {
+          jours: data.jours,
+          derniereDate: data.derniereDate,
+          alimentsPerdusHistorique: Array.isArray(data.alimentsPerdusHistorique)
+            ? data.alimentsPerdusHistorique : []
+        };
+      }
+    } catch (e) { /* ignore */ }
+  }
+  return { jours: [[],[],[],[],[],[],[]], derniereDate: dateDuJourStr(), alimentsPerdusHistorique: [] };
+}
+
+function sauvegarderDonnees() {
+  const data = { jours, derniereDate, alimentsPerdusHistorique };
+  localStorage.setItem(CLE_DONNEES, JSON.stringify(data));
+}
+
+/* ---------- Logique de decalage des jours ---------- */
+
+function decaler(nbJours) {
+  if (nbJours <= 0) return;
+  if (nbJours >= 7) {
+    jours = [[],[],[],[],[],[],[]];
+  } else {
+    jours = jours.slice(nbJours).concat(Array.from({length: nbJours}, () => []));
+  }
+}
+
+function calculerAlimentsPerdusParDecalage(nbJours) {
+  if (nbJours <= 0) return [];
+  let colonnesSupprimees, colonnesConservees;
+  if (nbJours >= 7) {
+    colonnesSupprimees = jours; colonnesConservees = [];
+  } else {
+    colonnesSupprimees = jours.slice(0, nbJours);
+    colonnesConservees = jours.slice(nbJours);
+  }
+  const clesConservees = new Set();
+  colonnesConservees.forEach(j => j.forEach(a => clesConservees.add(a.trim().toLowerCase())));
+
+  const nomsAffichage = new Map();
+  colonnesSupprimees.forEach(j => j.forEach(a => {
+    const cle = a.trim().toLowerCase();
+    if (!clesConservees.has(cle) && !nomsAffichage.has(cle)) nomsAffichage.set(cle, a.trim());
+  }));
+  return Array.from(nomsAffichage.values()).sort((a,b) => a.localeCompare(b, "fr"));
+}
+
+function calculerAlimentsAPerdre() {
+  const colonneAncienne = jours[0] || [];
+  const autres = jours.slice(1);
+  const clesConservees = new Set();
+  autres.forEach(j => j.forEach(a => clesConservees.add(a.trim().toLowerCase())));
+
+  const nomsAffichage = new Map();
+  colonneAncienne.forEach(a => {
+    const cle = a.trim().toLowerCase();
+    if (!clesConservees.has(cle) && !nomsAffichage.has(cle)) nomsAffichage.set(cle, a.trim());
+  });
+  return Array.from(nomsAffichage.values()).sort((a,b) => a.localeCompare(b, "fr"));
+}
+
+function rattraperJoursManques() {
+  const aujourdhui = dateDuJourStr();
+  const ecart = ecartEnJours(derniereDate, aujourdhui);
+  if (ecart > 0) {
+    alimentsPerdusHistorique = calculerAlimentsPerdusParDecalage(ecart);
+    decaler(ecart);
+  }
+  if (ecart !== 0) {
+    derniereDate = aujourdhui;
+    sauvegarderDonnees();
+  }
+}
+
+function planifierMinuit() {
+  const maintenant = new Date();
+  const minuitSuivant = new Date(maintenant);
+  minuitSuivant.setHours(24, 0, 5, 0); // 5s apres minuit, marge de securite
+  const delaiMs = minuitSuivant.getTime() - maintenant.getTime();
+  setTimeout(auPassageMinuit, delaiMs);
+}
+
+function auPassageMinuit() {
+  // On reutilise la meme logique de rattrapage qu'a l'ouverture du logiciel :
+  // si l'ordinateur est reste en veille plusieurs nuits avec l'onglet ouvert,
+  // un seul declenchement de minuteur peut avoir lieu au reveil, mais l'ecart
+  // de dates est recalcule et rattrape en une fois (et non un seul jour).
+  rattraperJoursManques();
+  rafraichirTout();
+  planifierMinuit();
+}
+
+/* ---------- Vitamines : lecture, badges, bulle, couverture semaine ---------- */
+
+function obtenirVitamines(aliment) {
+  return VITAMINS_ALIMENTS[aliment.trim().toLowerCase()] || [];
+}
+
+function libelleVitamine(code) {
+  return t("vitamine" + code);
+}
+
+function creerElementBadgesVitamines(aliment) {
+  const vitamines = obtenirVitamines(aliment);
+  if (!vitamines.length) return null;
+
+  const conteneur = document.createElement("span");
+  conteneur.className = "badges-vitamines";
+  conteneur.onclick = (e) => {
+    e.stopPropagation();
+    document.querySelectorAll(".badges-vitamines.tap-ouvert").forEach(el => {
+      if (el !== conteneur) el.classList.remove("tap-ouvert");
+    });
+    conteneur.classList.toggle("tap-ouvert");
+  };
+
+  vitamines.forEach(code => {
+    const badge = document.createElement("span");
+    badge.className = `badge-vitamine vit-${code}`;
+    badge.textContent = code;
+    conteneur.appendChild(badge);
+  });
+
+  const bulle = document.createElement("span");
+  bulle.className = "bulle-vitamines";
+  bulle.textContent = vitamines.map(libelleVitamine).join(", ");
+  conteneur.appendChild(bulle);
+
+  return conteneur;
+}
+
+function calculerCouvertureVitamines() {
+  return VITAMINES_SUIVIES.map(v => {
+    let joursCouverts = 0;
+    jours.forEach(jourListe => {
+      const present = jourListe.some(aliment => obtenirVitamines(aliment).includes(v.code));
+      if (present) joursCouverts++;
+    });
+    return { code: v.code, label: libelleVitamine(v.code), joursCouverts };
+  });
+}
+
+function mettreAJourVitaminesSemaine() {
+  const conteneur = document.getElementById("grilleVitamines");
+  conteneur.innerHTML = "";
+  calculerCouvertureVitamines().forEach(v => {
+    const pourcentage = Math.round((v.joursCouverts / 7) * 100);
+    const ligne = document.createElement("div");
+    ligne.className = "ligne-vitamine";
+    ligne.innerHTML = `
+      <div class="entete-vitamine"><span>${v.label}</span><span class="nb">${t("joursSur7", { n: v.joursCouverts })}</span></div>
+      <div class="barre-fond"><div class="barre-remplie" style="width:${pourcentage}%"></div></div>
+    `;
+    conteneur.appendChild(ligne);
+  });
+}
+
+/* ---------- Navigation entre pages ---------- */
+
+function afficherPage(nom) {
+  document.getElementById("pageSemaine").classList.toggle("actif", nom === "semaine");
+  document.getElementById("pageParametres").classList.toggle("actif", nom === "parametres");
+  document.getElementById("ongletSemaine").classList.toggle("actif", nom === "semaine");
+  document.getElementById("ongletParametres").classList.toggle("actif", nom === "parametres");
+  if (nom === "parametres") rafraichirListeGestion();
+}
+
+/* ---------- Construction et rafraichissement de la grille ---------- */
+
+function construireGrille() {
+  const grille = document.getElementById("grilleJours");
+  grille.innerHTML = "";
+  for (let i = 0; i < 7; i++) {
+    const colonne = document.createElement("div");
+    colonne.className = "colonne-jour" + (i === 6 ? " aujourdhui" : "");
+
+    const entete = document.createElement("div");
+    entete.className = "entete-jour";
+    entete.id = `enteteJour${i}`;
+    colonne.appendChild(entete);
+
+    const corps = document.createElement("div");
+    corps.className = "corps-jour";
+    corps.id = `corpsJour${i}`;
+    colonne.appendChild(corps);
+
+    if (i < 6) {
+      const btn = document.createElement("button");
+      btn.className = "bouton-petit-ajout";
+      btn.textContent = "+ Ajouter";
+      btn.onclick = () => ouvrirModaleAjout(i);
+      colonne.appendChild(btn);
+    } else {
+      const espace = document.createElement("div");
+      espace.style.height = "29px";
+      colonne.appendChild(espace);
+    }
+
+    grille.appendChild(colonne);
+  }
+}
+
+function libelleDateJour(indice) {
+  const decalageJours = 6 - indice; // colonne 6 = aujourd'hui, colonne 0 = il y a 6 jours
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() - decalageJours);
+  const libelle = date.toLocaleDateString(t("localeDate"), { weekday: "long", day: "numeric", month: "long" });
+  return libelle + (indice === 6 ? t("aujourdhui") : "");
+}
+
+function mettreAJourEntetesJours() {
+  for (let i = 0; i < 7; i++) {
+    const entete = document.getElementById(`enteteJour${i}`);
+    if (entete) entete.textContent = libelleDateJour(i);
+  }
+}
+
+function rafraichirTout() {
+  mettreAJourEntetesJours();
+  for (let i = 0; i < 7; i++) {
+    const corps = document.getElementById(`corpsJour${i}`);
+    corps.innerHTML = "";
+    jours[i].forEach((aliment, position) => {
+      const item = document.createElement("div");
+      item.className = "item-aliment";
+      const span = document.createElement("span");
+      span.textContent = nomAffiche(aliment);
+      const badgesVitamines = creerElementBadgesVitamines(aliment);
+      const btn = document.createElement("button");
+      btn.textContent = "✕";
+      btn.title = t("boutonSupprimer");
+      btn.onclick = () => supprimerAliment(i, position);
+      item.appendChild(span);
+      if (badgesVitamines) item.appendChild(badgesVitamines);
+      item.appendChild(btn);
+      corps.appendChild(item);
+    });
+  }
+  mettreAJourCompteur();
+  mettreAJourAlimentsPerdusHistorique();
+  mettreAJourAlimentsAPerdre();
+  mettreAJourVitaminesSemaine();
+}
+
+function mettreAJourCompteur() {
+  const distincts = new Set();
+  jours.forEach(j => j.forEach(a => distincts.add(a.trim().toLowerCase())));
+  let nombre = 0;
+  distincts.forEach(cle => { nombre += PONDERATION_ALIMENTS[cle] || 1; });
+  nombre = Math.round(nombre * 100) / 100; // evite les imprecisions type 13.750000000001
+
+  const el = document.getElementById("valeurCompteur");
+  el.textContent = `${nombre} / 30`;
+
+  let couleur;
+  if (nombre < 10) couleur = "var(--rouge)";
+  else if (nombre <= 20) couleur = "var(--orange)";
+  else if (nombre <= 29) couleur = "var(--bleu)";
+  else couleur = "var(--vert-ok)";
+  el.style.color = couleur;
+}
+
+function mettreAJourAlimentsPerdusHistorique() {
+  const el = document.getElementById("texteAlimentsPerdusHistorique");
+  el.textContent = alimentsPerdusHistorique.length
+    ? alimentsPerdusHistorique.map(nomAffiche).join(", ")
+    : t("alerteHistoriqueVide");
+}
+
+function mettreAJourAlimentsAPerdre() {
+  const liste = calculerAlimentsAPerdre();
+  const el = document.getElementById("texteAlimentsAPerdre");
+  el.textContent = liste.length
+    ? liste.map(nomAffiche).join(", ")
+    : t("alerteAvenirVide");
+}
+
+/* ---------- Suppression d'un aliment ---------- */
+
+function supprimerAliment(indiceJour, position) {
+  jours[indiceJour].splice(position, 1);
+  sauvegarderDonnees();
+  rafraichirTout();
+}
+
+/* ---------- Modale d'ajout d'aliment (choix depuis la liste) ---------- */
+
+function normaliserTexte(s) {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function ouvrirModaleAjout(indiceJour) {
+  jourCibleModale = indiceJour;
+  document.getElementById("titreModaleAjout").textContent = t("titreModaleAvecDate", { date: libelleDateJour(indiceJour) });
+  const champ = document.getElementById("champRechercheModale");
+  champ.value = "";
+  document.getElementById("fondModaleAjout").classList.add("visible");
+  filtrerModale();
+  setTimeout(() => champ.focus(), 30);
+}
+
+function fermerModaleAjout() {
+  document.getElementById("fondModaleAjout").classList.remove("visible");
+  jourCibleModale = null;
+}
+
+function filtrerModale() {
+  const saisie = normaliserTexte(document.getElementById("champRechercheModale").value.trim());
+  const langueTri = langueActuelle === "en" ? "en" : "fr";
+  const triee = [...listeAliments].sort((a,b) => nomAffiche(a).localeCompare(nomAffiche(b), langueTri));
+  let resultats;
+  if (saisie === "") {
+    resultats = triee;
+  } else {
+    const commenceParPr = triee.filter(a => normaliserTexte(nomAffiche(a)).startsWith(saisie));
+    const contient = triee.filter(a => normaliserTexte(nomAffiche(a)).includes(saisie) && !commenceParPr.includes(a));
+    resultats = commenceParPr.concat(contient);
+  }
+  resultatsModaleActuels = resultats;
+  indexSurvoleModale = resultats.length ? 0 : -1;
+
+  const ul = document.getElementById("listeResultatsModale");
+  ul.innerHTML = "";
+  resultats.forEach((aliment, idx) => {
+    const li = document.createElement("li");
+    li.textContent = nomAffiche(aliment);
+    if (idx === indexSurvoleModale) li.classList.add("survole");
+    li.onclick = () => { indexSurvoleModale = idx; document.getElementById("champRechercheModale").value = nomAffiche(aliment); validerModaleAjout(); };
+    ul.appendChild(li);
+  });
+
+  document.getElementById("infoResultatsModale").textContent =
+    resultats.length ? t("resultatsCount", { n: resultats.length }) : t("aucunResultat");
+}
+
+function deplacerSurvolModale(delta) {
+  if (!resultatsModaleActuels.length) return;
+  indexSurvoleModale = Math.min(Math.max(indexSurvoleModale + delta, 0), resultatsModaleActuels.length - 1);
+  const items = document.querySelectorAll("#listeResultatsModale li");
+  items.forEach((li, idx) => li.classList.toggle("survole", idx === indexSurvoleModale));
+  if (items[indexSurvoleModale]) items[indexSurvoleModale].scrollIntoView({ block: "nearest" });
+}
+
+function validerModaleAjout() {
+  const saisie = document.getElementById("champRechercheModale").value.trim();
+  const correspondance = listeAliments.find(
+    a => normaliserTexte(a) === normaliserTexte(saisie) || normaliserTexte(nomAffiche(a)) === normaliserTexte(saisie)
+  );
+
+  if (!correspondance) {
+    afficherAvertissement(t("avertissementInconnuTitre"), t("avertissementInconnuMessage"));
+    return;
+  }
+
+  const indiceJour = jourCibleModale;
+  const dejaPresent = jours[indiceJour].some(a => a.toLowerCase() === correspondance.toLowerCase());
+  if (dejaPresent) {
+    afficherAvertissement(t("avertissementDoublonTitre"),
+      t("avertissementDoublonMessage", { aliment: nomAffiche(correspondance), date: libelleDateJour(indiceJour) }));
+    return; // la modale reste ouverte pour choisir autre chose
+  }
+
+  jours[indiceJour].push(correspondance);
+  sauvegarderDonnees();
+  rafraichirTout();
+  fermerModaleAjout();
+}
+
+/* ---------- Modale d'avertissement generique ---------- */
+
+function afficherAvertissement(titre, texte) {
+  document.getElementById("titreAvertissement").textContent = titre;
+  document.getElementById("texteAvertissement").textContent = texte;
+  document.getElementById("fondModaleAvertissement").classList.add("visible");
+}
+function fermerModaleAvertissement() {
+  document.getElementById("fondModaleAvertissement").classList.remove("visible");
+}
+
+/* ---------- Page Parametres : gestion de la liste d'aliments ---------- */
+
+function rafraichirListeGestion() {
+  document.getElementById("compteurListeAliments").textContent = listeAliments.length;
+  const descEl = document.getElementById("descListeAliments");
+  if (descEl) descEl.textContent = t("descListeCompte", { n: listeAliments.length });
+
+  const filtre = normaliserTexte(document.getElementById("champRechercheParam").value.trim());
+  const langueTri = langueActuelle === "en" ? "en" : "fr";
+  const triee = [...listeAliments].sort((a,b) => nomAffiche(a).localeCompare(nomAffiche(b), langueTri));
+  const visibles = filtre ? triee.filter(a => normaliserTexte(nomAffiche(a)).includes(filtre)) : triee;
+
+  const ul = document.getElementById("listeGestionAliments");
+  ul.innerHTML = "";
+  visibles.forEach(aliment => {
+    const li = document.createElement("li");
+    const cle = aliment.toLowerCase();
+    const poids = PONDERATION_ALIMENTS[cle];
+    const span = document.createElement("span");
+    span.textContent = nomAffiche(aliment);
+    if (poids && poids !== 1) {
+      const badge = document.createElement("span");
+      badge.className = "compte-pondere";
+      badge.textContent = t("compteBadge", { poids });
+      span.appendChild(badge);
+    }
+    const btn = document.createElement("button");
+    btn.textContent = t("boutonSupprimer");
+    btn.onclick = () => supprimerAlimentDeLaListe(aliment);
+    li.appendChild(span);
+    const badgesVitamines = creerElementBadgesVitamines(aliment);
+    if (badgesVitamines) li.appendChild(badgesVitamines);
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
+}
+
+function ajouterAlimentDepuisParametres() {
+  const champ = document.getElementById("champNouvelAliment");
+  const valeur = champ.value.trim();
+  const msg = document.getElementById("messageAjoutParam");
+
+  if (!valeur) {
+    msg.textContent = t("msgEcrisNom");
+    msg.className = "erreur";
+    return;
+  }
+  const existeDeja = listeAliments.some(a => a.toLowerCase() === valeur.toLowerCase());
+  if (existeDeja) {
+    msg.textContent = t("msgDejaListe", { aliment: valeur });
+    msg.className = "erreur";
+    return;
+  }
+
+  listeAliments.push(valeur);
+  sauvegarderListeAliments();
+  rafraichirListeGestion();
+  champ.value = "";
+  msg.textContent = t("msgAjouteListe", { aliment: valeur });
+  msg.className = "ok";
+}
+
+function supprimerAlimentDeLaListe(aliment) {
+  listeAliments = listeAliments.filter(a => a.toLowerCase() !== aliment.toLowerCase());
+  sauvegarderListeAliments();
+
+  // On memorise cette suppression pour qu'elle survive au rechargement :
+  // sans ca, la fusion automatique (qui ajoute les nouveautes du logiciel)
+  // reintroduirait cet aliment au prochain chargement.
+  const supprimes = chargerAlimentsSupprimes();
+  const cle = aliment.trim().toLowerCase();
+  if (!supprimes.includes(cle)) {
+    supprimes.push(cle);
+    sauvegarderAlimentsSupprimes(supprimes);
+  }
+
+  rafraichirListeGestion();
+}
+
+function reinitialiserListeParDefaut() {
+  const ok = confirm(t("confirmReset"));
+  if (!ok) return;
+  sauvegarderAlimentsSupprimes([]); // on oublie les suppressions : vrai retour a zero
+  listeAliments = [...ALIMENTS_PAR_DEFAUT];
+  sauvegarderListeAliments();
+  rafraichirListeGestion();
+}
+
+/* ---------- Sauvegarde / restauration (export / import) ---------- */
+
+function exporterSauvegarde() {
+  const paquet = {
+    type: "suivi_alimentaire_sauvegarde",
+    version: 1,
+    exporteLe: new Date().toISOString(),
+    listeAliments,
+    donnees: { jours, derniereDate, alimentsPerdusHistorique }
+  };
+  const blob = new Blob([JSON.stringify(paquet, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const horodatage = dateDuJourStr();
+  a.href = url;
+  a.download = `sauvegarde_suivi_alimentaire_${horodatage}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  const zone = document.getElementById("zoneMessageParam");
+  zone.textContent = t("msgExportOk");
+  zone.className = "ok";
+}
+
+function importerSauvegarde(event) {
+  const fichier = event.target.files[0];
+  const zone = document.getElementById("zoneMessageParam");
+  if (!fichier) return;
+
+  const lecteur = new FileReader();
+  lecteur.onload = () => {
+    try {
+      const paquet = JSON.parse(lecteur.result);
+      if (!paquet || paquet.type !== "suivi_alimentaire_sauvegarde" || !paquet.donnees) {
+        throw new Error("format invalide");
+      }
+      const ok = confirm(t("confirmImport"));
+      if (!ok) { event.target.value = ""; return; }
+
+      listeAliments = Array.isArray(paquet.listeAliments) && paquet.listeAliments.length
+        ? paquet.listeAliments : [...ALIMENTS_PAR_DEFAUT];
+      jours = Array.isArray(paquet.donnees.jours) && paquet.donnees.jours.length === 7
+        ? paquet.donnees.jours : [[],[],[],[],[],[],[]];
+      derniereDate = paquet.donnees.derniereDate || dateDuJourStr();
+      alimentsPerdusHistorique = Array.isArray(paquet.donnees.alimentsPerdusHistorique)
+        ? paquet.donnees.alimentsPerdusHistorique : [];
+
+      sauvegarderListeAliments();
+      sauvegarderDonnees();
+      rattraperJoursManques();
+      rafraichirTout();
+      rafraichirListeGestion();
+
+      zone.textContent = t("msgImportOk");
+      zone.className = "ok";
+    } catch (e) {
+      zone.textContent = t("msgImportErreur");
+      zone.className = "erreur";
+    }
+    event.target.value = "";
+  };
+  lecteur.readAsText(fichier);
+}
+
+function reinitialiserSemaine() {
+  const ok = confirm(t("confirmViderSemaine"));
+  if (!ok) return;
+  jours = [[],[],[],[],[],[],[]];
+  alimentsPerdusHistorique = [];
+  sauvegarderDonnees();
+  rafraichirTout();
+  const zone = document.getElementById("zoneMessageParam");
+  zone.textContent = t("msgSemaineVidee");
+  zone.className = "ok";
+}
+
+/* ---------- Initialisation ---------- */
+
+function initialiser() {
+  langueActuelle = chargerLangue();
+  appliquerTraductionsStatiques();
+
+  listeAliments = chargerListeAliments();
+  const donnees = chargerDonnees();
+  jours = donnees.jours;
+  derniereDate = donnees.derniereDate;
+  alimentsPerdusHistorique = donnees.alimentsPerdusHistorique;
+
+  rattraperJoursManques();
+  construireGrille();
+  rafraichirTout();
+  planifierMinuit();
+
+  document.getElementById("boutonAjoutJour").onclick = () => ouvrirModaleAjout(6);
+
+  document.getElementById("selecteurLangue").addEventListener("change", (e) => changerLangue(e.target.value));
+
+  document.getElementById("champRechercheModale").addEventListener("input", filtrerModale);
+  document.getElementById("champRechercheModale").addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); deplacerSurvolModale(1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); deplacerSurvolModale(-1); }
+    else if (e.key === "Enter") {
+      e.preventDefault();
+      if (indexSurvoleModale >= 0 && resultatsModaleActuels[indexSurvoleModale]) {
+        document.getElementById("champRechercheModale").value = nomAffiche(resultatsModaleActuels[indexSurvoleModale]);
+      }
+      validerModaleAjout();
+    }
+    else if (e.key === "Escape") { fermerModaleAjout(); }
+  });
+
+  document.getElementById("champNouvelAliment").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); ajouterAlimentDepuisParametres(); }
+  });
+
+  document.getElementById("fondModaleAjout").addEventListener("click", (e) => {
+    if (e.target.id === "fondModaleAjout") fermerModaleAjout();
+  });
+  document.getElementById("fondModaleAvertissement").addEventListener("click", (e) => {
+    if (e.target.id === "fondModaleAvertissement") fermerModaleAvertissement();
+  });
+
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".badges-vitamines.tap-ouvert").forEach(el => el.classList.remove("tap-ouvert"));
+  });
+}
+
+document.addEventListener("DOMContentLoaded", initialiser);
+
+// Enregistrement du service worker (fonctionnement hors-ligne / installation).
+// Echoue silencieusement si indisponible (ex: ouverture directe du fichier
+// en double-clic, protocole file:// - les navigateurs exigent alors un
+// serveur local ou un hebergement en https pour activer cette fonction).
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {
+      // Pas grave : l'application continue de fonctionner normalement,
+      // simplement sans mise en cache hors-ligne ni installation possible.
+    });
+  });
+}
+</script>
+
+</body>
+</html>

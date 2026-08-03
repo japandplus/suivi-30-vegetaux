@@ -1,0 +1,32 @@
+{
+  "name": "Suivi alimentaire hebdomadaire",
+  "short_name": "Suivi alimentaire",
+  "description": "Suivi de la diversite des fruits, legumes et autres vegetaux manges chaque semaine, avec objectif de 30 aliments differents.",
+  "start_url": "./suivi_alimentaire.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6f3ec",
+  "theme_color": "#2b4f38",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "icone-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icone-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icone-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
