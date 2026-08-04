@@ -1,5 +1,8 @@
 /* ============================================================
    Service worker - Suivi alimentaire hebdomadaire
+   Date de creation : 2026-08-04
+   Version : 2.0.0
+
    Permet le fonctionnement hors-ligne et l'installation de
    l'application (PWA). Aucune donnee n'est envoyee sur internet :
    ce fichier ne fait que mettre en cache les fichiers de
@@ -7,11 +10,14 @@
    donnees de l'utilisateur (qui restent dans localStorage).
    ============================================================ */
 
-const NOM_CACHE = "suivi-alimentaire-cache-v1";
+const VERSION_APP = "2.0.0";
+const NOM_CACHE = `suivi-alimentaire-cache-v${VERSION_APP}`;
 
 // Chemins relatifs au dossier ou se trouve ce service worker.
+// "./" cible le document effectivement servi a cette adresse (index.html
+// une fois deploye, quel que soit son nom de fichier d'origine).
 const FICHIERS_A_METTRE_EN_CACHE = [
-  "./suivi_alimentaire.html",
+  "./",
   "./manifest.json",
   "./icone-192.png",
   "./icone-512.png",
