@@ -1,9 +1,20 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<!--
+  Suivi alimentaire hebdomadaire
+  Date de creation : 2026-08-04
+  Version : 2.0.0
+-->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Suivi alimentaire hebdomadaire</title>
+<meta name="version" content="2.0.0">
+<meta name="date-creation" content="2026-08-04">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2b4f38">
+<link rel="icon" type="image/png" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
 <style>
   :root {
     --creme: #f6f3ec;
@@ -82,6 +93,26 @@
   nav.onglets button.actif {
     background: var(--vert-feuille);
     color: #fff;
+  }
+
+  .entete-droite {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .selecteur-langue {
+    border: none;
+    background: var(--panneau);
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--encre-douce);
+    box-shadow: var(--ombre);
+    cursor: pointer;
+    appearance: auto;
   }
 
   section.page { display: none; }
@@ -548,11 +579,17 @@
 <div class="enveloppe">
 
   <header class="entete">
-    <h1>🌱 Suivi alimentaire hebdomadaire</h1>
-    <nav class="onglets">
-      <button id="ongletSemaine" class="actif" onclick="afficherPage('semaine')">Semaine</button>
-      <button id="ongletParametres" onclick="afficherPage('parametres')">Paramètres</button>
-    </nav>
+    <h1 data-i18n="titrePrincipal">🌱 Suivi alimentaire hebdomadaire</h1>
+    <div class="entete-droite">
+      <select id="selecteurLangue" class="selecteur-langue" aria-label="Langue / Language">
+        <option value="fr">🇫🇷 Français</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
+      <nav class="onglets">
+        <button id="ongletSemaine" class="actif" data-i18n="ongletSemaine" onclick="afficherPage('semaine')">Semaine</button>
+        <button id="ongletParametres" data-i18n="ongletParametres" onclick="afficherPage('parametres')">Paramètres</button>
+      </nav>
+    </div>
   </header>
 
   <!-- ============ PAGE SEMAINE ============ -->
@@ -560,27 +597,28 @@
 
     <div class="barre-haut">
       <div class="bloc-compteur">
-        <p class="etiquette">Aliments différents cette semaine</p>
+        <p class="etiquette" data-i18n="etiquetteCompteur">Aliments différents cette semaine</p>
         <p id="valeurCompteur">0 / 30</p>
       </div>
 
       <div class="bloc-alertes">
         <p class="alerte-ligne historique">
-          <span class="titre-alerte">Aliments perdus au dernier décalage :</span>
+          <span class="titre-alerte" data-i18n="titreAlerteHistorique">Aliments perdus au dernier décalage :</span>
           <span class="contenu" id="texteAlimentsPerdusHistorique">Aucun aliment perdu au dernier décalage.</span>
         </p>
         <p class="alerte-ligne avenir">
-          <span class="titre-alerte">Aliments qui seront perdus au prochain décalage :</span>
+          <span class="titre-alerte" data-i18n="titreAlerteAvenir">Aliments qui seront perdus au prochain décalage :</span>
           <span class="contenu" id="texteAlimentsAPerdre">Aucun aliment ne sera perdu au prochain décalage.</span>
         </p>
       </div>
 
-      <button id="boutonAjoutJour">+ Ajouter un aliment aujourd'hui</button>
+      <button id="boutonAjoutJour" data-i18n="boutonAjoutJour">+ Ajouter un aliment aujourd'hui</button>
     </div>
 
     <div class="carte-vitamines">
-      <p class="etiquette-vitamines">Vitamines couvertes cette semaine
-        <span class="note-vitamines">(estimation indicative, pas une donnée médicale)</span>
+      <p class="etiquette-vitamines">
+        <span data-i18n="titreVitamines">Vitamines couvertes cette semaine</span>
+        <span class="note-vitamines" data-i18n="noteVitamines">(estimation indicative, pas une donnée médicale)</span>
       </p>
       <div class="grille-vitamines" id="grilleVitamines"><!-- rempli en JS --></div>
     </div>
@@ -595,17 +633,17 @@
     <div class="grille-parametres">
 
       <div class="carte">
-        <h2>Ajouter un aliment à la liste</h2>
-        <p class="description">
+        <h2 data-i18n="titreAjouterListe">Ajouter un aliment à la liste</h2>
+        <p class="description" data-i18n="descAjouterListe">
           Cet aliment deviendra choisissable dans la fenêtre d'ajout, sur la page Semaine.
         </p>
         <div class="ligne-formulaire">
-          <input type="text" id="champNouvelAliment" placeholder="Ex : Kombucha" maxlength="60">
-          <button onclick="ajouterAlimentDepuisParametres()">Ajouter</button>
+          <input type="text" id="champNouvelAliment" data-i18n-placeholder="placeholderNouvelAliment" placeholder="Ex : Kombucha" maxlength="60">
+          <button data-i18n="boutonAjouter" onclick="ajouterAlimentDepuisParametres()">Ajouter</button>
         </div>
         <p id="messageAjoutParam"></p>
 
-        <div class="puce-suggestion">
+        <div class="puce-suggestion" id="suggestionParametres" data-i18n="suggestionParametres">
           <b>Idées utiles que je propose :</b> tu peux aussi importer / exporter une sauvegarde
           complète (liste + semaine) pour changer d'ordinateur ou garder une copie de sécurité —
           voir le bloc « Sauvegarde » à droite. Note : un aliment que tu ajoutes toi-même n'aura
@@ -614,17 +652,17 @@
       </div>
 
       <div class="carte">
-        <h2>Liste actuelle des aliments</h2>
-        <p class="description">
+        <h2 data-i18n="titreListeActuelle">Liste actuelle des aliments</h2>
+        <p class="description" id="descListeAliments">
           <span id="compteurListeAliments">0</span> aliments. Recherche pour filtrer, croix pour supprimer.
         </p>
         <div class="ligne-formulaire">
-          <input type="text" id="champRechercheParam" placeholder="Filtrer la liste…" oninput="rafraichirListeGestion()">
+          <input type="text" id="champRechercheParam" data-i18n-placeholder="placeholderFiltre" placeholder="Filtrer la liste…" oninput="rafraichirListeGestion()">
         </div>
         <ul class="liste-gestion" id="listeGestionAliments"><!-- rempli en JS --></ul>
 
         <div class="bloc-outils">
-          <button onclick="reinitialiserListeParDefaut()">↺ Réinitialiser la liste par défaut</button>
+          <button data-i18n="boutonReinitialiserListe" onclick="reinitialiserListeParDefaut()">↺ Réinitialiser la liste par défaut</button>
         </div>
       </div>
 
@@ -633,30 +671,29 @@
     <div class="grille-parametres" style="margin-top:18px;">
 
       <div class="carte">
-        <h2>Sauvegarde</h2>
-        <p class="description">
+        <h2 data-i18n="titreSauvegarde">Sauvegarde</h2>
+        <p class="description" data-i18n="descSauvegarde">
           Les données restent dans ce navigateur. Exporte un fichier de sauvegarde pour la
           transporter sur un autre ordinateur ou la garder en sécurité.
         </p>
         <div class="bloc-outils">
-          <button onclick="exporterSauvegarde()">⭳ Exporter une sauvegarde (.json)</button>
-          <label class="bouton-fichier" for="champImportFichier">⭱ Importer une sauvegarde…</label>
+          <button data-i18n="boutonExporter" onclick="exporterSauvegarde()">⭳ Exporter une sauvegarde (.json)</button>
+          <label class="bouton-fichier" for="champImportFichier" data-i18n="boutonImporter">⭱ Importer une sauvegarde…</label>
           <input type="file" id="champImportFichier" accept="application/json" onchange="importerSauvegarde(event)">
-          <button class="danger" onclick="reinitialiserSemaine()">⚠ Vider la semaine en cours</button>
+          <button class="danger" data-i18n="boutonViderSemaine" onclick="reinitialiserSemaine()">⚠ Vider la semaine en cours</button>
         </div>
         <p id="zoneMessageParam"></p>
       </div>
 
       <div class="carte">
-        <h2>À propos du comptage</h2>
-        <p class="description">Quelques règles déjà actives dans le logiciel :</p>
+        <h2 data-i18n="titreApropos">À propos du comptage</h2>
+        <p class="description" data-i18n="descApropos">Quelques règles déjà actives dans le logiciel :</p>
         <div class="puce-suggestion" style="margin-top:0;">
-          • Le même aliment ne compte qu'une fois sur toute la semaine.<br>
-          • <b>Agar-agar</b> compte pour 2 dans le total sur 30.<br>
-          • <b>Herbes, épices et thés/tisanes</b> comptent pour 0,25 dans le total sur 30.<br>
-          • Un aliment déjà ajouté le même jour est refusé (message d'avertissement).<br>
-          • Seul un aliment présent dans la liste peut être ajouté.<br>
-          • Les badges colorés indiquent les vitamines majeures d'un aliment (survol ou tap pour le détail).
+          <span data-i18n="regleUnique">• Le même aliment ne compte qu'une fois sur toute la semaine.<br></span>
+          <span data-i18n="regleHerbes">• <b>Herbes, épices et thés/tisanes</b> comptent pour 0,25 dans le total sur 30.<br></span>
+          <span data-i18n="regleDoublon">• Un aliment déjà ajouté le même jour est refusé (message d'avertissement).<br></span>
+          <span data-i18n="regleListe">• Seul un aliment présent dans la liste peut être ajouté.<br></span>
+          <span data-i18n="regleBadges">• Les badges colorés indiquent les vitamines majeures d'un aliment (survol ou tap pour le détail).</span>
         </div>
       </div>
 
@@ -664,19 +701,19 @@
 
   </section>
 
-  <footer class="pied">Suivi alimentaire — fonctionne hors-ligne, aucune donnée envoyée sur internet.</footer>
+  <footer class="pied" data-i18n="pied">Suivi alimentaire — fonctionne hors-ligne, aucune donnée envoyée sur internet.</footer>
 </div>
 
 <!-- ============ MODALE : choisir un aliment pour un jour ============ -->
 <div class="fond-modale" id="fondModaleAjout">
   <div class="boite-modale">
     <h2 id="titreModaleAjout">Ajouter un aliment</h2>
-    <input type="text" id="champRechercheModale" placeholder="Rechercher un aliment…" autocomplete="off">
+    <input type="text" id="champRechercheModale" data-i18n-placeholder="placeholderRecherche" placeholder="Rechercher un aliment…" autocomplete="off">
     <ul class="liste-resultats" id="listeResultatsModale"></ul>
     <p class="info-resultats" id="infoResultatsModale"></p>
     <div class="rangee-boutons">
-      <button class="btn-secondaire" onclick="fermerModaleAjout()">Annuler</button>
-      <button class="btn-principal" onclick="validerModaleAjout()">Ajouter</button>
+      <button class="btn-secondaire" data-i18n="boutonAnnuler" onclick="fermerModaleAjout()">Annuler</button>
+      <button class="btn-principal" data-i18n="boutonAjouterModale" onclick="validerModaleAjout()">Ajouter</button>
     </div>
   </div>
 </div>
@@ -688,7 +725,7 @@
     <h2 id="titreAvertissement">Attention</h2>
     <p id="texteAvertissement"></p>
     <div class="rangee-boutons">
-      <button class="btn-principal" onclick="fermerModaleAvertissement()">Compris</button>
+      <button class="btn-principal" data-i18n="boutonCompris" onclick="fermerModaleAvertissement()">Compris</button>
     </div>
   </div>
 </div>
@@ -703,12 +740,217 @@
 const CLE_DONNEES = "suivi_alimentaire_donnees";
 const CLE_LISTE_ALIMENTS = "suivi_alimentaire_liste_aliments";
 const CLE_ALIMENTS_SUPPRIMES = "suivi_alimentaire_aliments_supprimes";
+const CLE_LANGUE = "suivi_alimentaire_langue";
+
+/* ============================================================
+   Systeme de langue (i18n)
+   ============================================================ */
+
+let langueActuelle = "fr";
+
+const TRADUCTIONS = {
+  fr: {
+    titrePrincipal: "🌱 Suivi alimentaire hebdomadaire",
+    ongletSemaine: "Semaine",
+    ongletParametres: "Paramètres",
+
+    etiquetteCompteur: "Aliments différents cette semaine",
+    titreAlerteHistorique: "Aliments perdus au dernier décalage :",
+    alerteHistoriqueVide: "Aucun aliment perdu au dernier décalage.",
+    titreAlerteAvenir: "Aliments qui seront perdus au prochain décalage :",
+    alerteAvenirVide: "Aucun aliment ne sera perdu au prochain décalage.",
+    boutonAjoutJour: "+ Ajouter un aliment aujourd'hui",
+    boutonAjoutPetit: "+ Ajouter",
+
+    titreVitamines: "Vitamines couvertes cette semaine",
+    noteVitamines: "(estimation indicative, pas une donnée médicale)",
+    joursSur7: "{{n}} / 7 jours",
+
+    titreModaleAvecDate: "Ajouter un aliment — {{date}}",
+    placeholderRecherche: "Rechercher un aliment…",
+    resultatsCount: "{{n}} résultat(s)",
+    aucunResultat: "Aucun aliment ne correspond dans la liste",
+    boutonAnnuler: "Annuler",
+    boutonAjouterModale: "Ajouter",
+
+    titreAttention: "Attention",
+    boutonCompris: "Compris",
+    avertissementInconnuTitre: "Aliment inconnu",
+    avertissementInconnuMessage: "Cet aliment n'existe pas dans la liste.\nChoisis-le dans les résultats proposés, ou ajoute-le d'abord depuis la page Paramètres.",
+    avertissementDoublonTitre: "Aliment déjà ajouté",
+    avertissementDoublonMessage: "« {{aliment}} » a déjà été ajouté pour le {{date}}.",
+
+    titreAjouterListe: "Ajouter un aliment à la liste",
+    descAjouterListe: "Cet aliment deviendra choisissable dans la fenêtre d'ajout, sur la page Semaine.",
+    placeholderNouvelAliment: "Ex : Kombucha",
+    boutonAjouter: "Ajouter",
+    msgEcrisNom: "Écris un nom d'aliment avant d'ajouter.",
+    msgDejaListe: "« {{aliment}} » est déjà dans la liste.",
+    msgAjouteListe: "« {{aliment}} » a été ajouté à la liste.",
+    suggestionParametres: "<b>Idées utiles que je propose :</b> tu peux aussi importer / exporter une sauvegarde complète (liste + semaine) pour changer d'ordinateur ou garder une copie de sécurité — voir le bloc « Sauvegarde » à droite. Note : un aliment que tu ajoutes toi-même n'aura pas de badge vitamine automatique, la base de données n'étant pas exhaustive.",
+
+    titreListeActuelle: "Liste actuelle des aliments",
+    descListeCompte: "{{n}} aliments. Recherche pour filtrer, croix pour supprimer.",
+    placeholderFiltre: "Filtrer la liste…",
+    boutonSupprimer: "Supprimer",
+    compteBadge: "compte pour {{poids}}",
+    boutonReinitialiserListe: "↺ Réinitialiser la liste par défaut",
+    confirmReset: "Remettre la liste des aliments telle qu'à l'origine ?\nTes ajouts personnels dans cette liste seront perdus (la semaine en cours n'est pas touchée).",
+
+    titreSauvegarde: "Sauvegarde",
+    descSauvegarde: "Les données restent dans ce navigateur. Exporte un fichier de sauvegarde pour la transporter sur un autre ordinateur ou la garder en sécurité.",
+    boutonExporter: "⭳ Exporter une sauvegarde (.json)",
+    boutonImporter: "⭱ Importer une sauvegarde…",
+    boutonViderSemaine: "⚠ Vider la semaine en cours",
+    confirmImport: "Importer cette sauvegarde va remplacer la liste d'aliments et la semaine en cours. Continuer ?",
+    confirmViderSemaine: "Vider tous les aliments de la semaine en cours ? Cette action est irréversible.",
+    msgExportOk: "Sauvegarde exportée.",
+    msgImportOk: "Sauvegarde importée avec succès.",
+    msgImportErreur: "Ce fichier ne semble pas être une sauvegarde valide.",
+    msgSemaineVidee: "La semaine en cours a été vidée.",
+
+    titreApropos: "À propos du comptage",
+    descApropos: "Quelques règles déjà actives dans le logiciel :",
+    regleUnique: "• Le même aliment ne compte qu'une fois sur toute la semaine.<br>",
+    regleHerbes: "• <b>Herbes, épices et thés/tisanes</b> comptent pour 0,25 dans le total sur 30.<br>",
+    regleDoublon: "• Un aliment déjà ajouté le même jour est refusé (message d'avertissement).<br>",
+    regleListe: "• Seul un aliment présent dans la liste peut être ajouté.<br>",
+    regleBadges: "• Les badges colorés indiquent les vitamines majeures d'un aliment (survol ou tap pour le détail).",
+
+    pied: "Suivi alimentaire — fonctionne hors-ligne, aucune donnée envoyée sur internet.",
+
+    vitamineA: "Vitamine A",
+    vitamineB9: "Vitamine B9 (folates)",
+    vitamineC: "Vitamine C",
+    vitamineD: "Vitamine D",
+    vitamineE: "Vitamine E",
+    vitamineK: "Vitamine K",
+
+    aujourdhui: " (aujourd'hui)",
+    localeDate: "fr-FR",
+  },
+
+  en: {
+    titrePrincipal: "🌱 Weekly Food Tracker",
+    ongletSemaine: "Week",
+    ongletParametres: "Settings",
+
+    etiquetteCompteur: "Different foods this week",
+    titreAlerteHistorique: "Foods lost at the last shift:",
+    alerteHistoriqueVide: "No food lost at the last shift.",
+    titreAlerteAvenir: "Foods that will be lost at the next shift:",
+    alerteAvenirVide: "No food will be lost at the next shift.",
+    boutonAjoutJour: "+ Add a food today",
+    boutonAjoutPetit: "+ Add",
+
+    titreVitamines: "Vitamins covered this week",
+    noteVitamines: "(indicative estimate, not medical data)",
+    joursSur7: "{{n}} / 7 days",
+
+    titreModaleAvecDate: "Add a food — {{date}}",
+    placeholderRecherche: "Search for a food…",
+    resultatsCount: "{{n}} result(s)",
+    aucunResultat: "No food matches the list",
+    boutonAnnuler: "Cancel",
+    boutonAjouterModale: "Add",
+
+    titreAttention: "Warning",
+    boutonCompris: "Got it",
+    avertissementInconnuTitre: "Unknown food",
+    avertissementInconnuMessage: "This food isn't in the list.\nPick it from the suggested results, or add it first from the Settings page.",
+    avertissementDoublonTitre: "Food already added",
+    avertissementDoublonMessage: "\u201c{{aliment}}\u201d has already been added for {{date}}.",
+
+    titreAjouterListe: "Add a food to the list",
+    descAjouterListe: "This food will become available in the search window, on the Week page.",
+    placeholderNouvelAliment: "E.g.: Kombucha",
+    boutonAjouter: "Add",
+    msgEcrisNom: "Type a food name before adding.",
+    msgDejaListe: "\u201c{{aliment}}\u201d is already in the list.",
+    msgAjouteListe: "\u201c{{aliment}}\u201d has been added to the list.",
+    suggestionParametres: "<b>Useful ideas I'm suggesting:</b> you can also import / export a full backup (list + week) to switch computers or keep a safety copy — see the \u201cBackup\u201d block on the right. Note: a food you add yourself won't get an automatic vitamin badge, since the database isn't exhaustive.",
+
+    titreListeActuelle: "Current food list",
+    descListeCompte: "{{n}} foods. Search to filter, cross to delete.",
+    placeholderFiltre: "Filter the list…",
+    boutonSupprimer: "Delete",
+    compteBadge: "counts as {{poids}}",
+    boutonReinitialiserListe: "↺ Reset to default list",
+    confirmReset: "Restore the food list to its original state?\nYour personal additions to this list will be lost (your current week is not affected).",
+
+    titreSauvegarde: "Backup",
+    descSauvegarde: "Data stays in this browser. Export a backup file to move it to another computer or keep it safe.",
+    boutonExporter: "⭳ Export a backup (.json)",
+    boutonImporter: "⭱ Import a backup…",
+    boutonViderSemaine: "⚠ Clear the current week",
+    confirmImport: "Importing this backup will replace the food list and the current week. Continue?",
+    confirmViderSemaine: "Clear all foods from the current week? This action is irreversible.",
+    msgExportOk: "Backup exported.",
+    msgImportOk: "Backup imported successfully.",
+    msgImportErreur: "This file doesn't look like a valid backup.",
+    msgSemaineVidee: "The current week has been cleared.",
+
+    titreApropos: "About the counting",
+    descApropos: "A few rules already active in the software:",
+    regleUnique: "• The same food only counts once across the whole week.<br>",
+    regleHerbes: "• <b>Herbs, spices and teas/infusions</b> count as 0.25 toward the total out of 30.<br>",
+    regleDoublon: "• A food already added on the same day is refused (warning message).<br>",
+    regleListe: "• Only a food already in the list can be added.<br>",
+    regleBadges: "• Colored badges indicate a food's major vitamins (hover or tap for details).",
+
+    pied: "Food tracker — works offline, no data sent over the internet.",
+
+    vitamineA: "Vitamin A",
+    vitamineB9: "Vitamin B9 (folate)",
+    vitamineC: "Vitamin C",
+    vitamineD: "Vitamin D",
+    vitamineE: "Vitamin E",
+    vitamineK: "Vitamin K",
+
+    aujourdhui: " (today)",
+    localeDate: "en-US",
+  },
+};
+
+function t(cle, params) {
+  const dict = TRADUCTIONS[langueActuelle] || TRADUCTIONS.fr;
+  let texte = dict[cle] !== undefined ? dict[cle] : (TRADUCTIONS.fr[cle] || cle);
+  if (params) {
+    Object.keys(params).forEach(k => {
+      texte = texte.replace(new RegExp(`{{${k}}}`, "g"), params[k]);
+    });
+  }
+  return texte;
+}
+
+function chargerLangue() {
+  const stockee = localStorage.getItem(CLE_LANGUE);
+  return (stockee === "en" || stockee === "fr") ? stockee : "fr";
+}
+
+function changerLangue(langue) {
+  langueActuelle = (langue === "en") ? "en" : "fr";
+  localStorage.setItem(CLE_LANGUE, langueActuelle);
+  appliquerTraductionsStatiques();
+  rafraichirTout();
+  rafraichirListeGestion();
+}
+
+function appliquerTraductionsStatiques() {
+  document.documentElement.lang = langueActuelle;
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    el.innerHTML = t(el.getAttribute("data-i18n"));
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    el.placeholder = t(el.getAttribute("data-i18n-placeholder"));
+  });
+  const selecteur = document.getElementById("selecteurLangue");
+  if (selecteur) selecteur.value = langueActuelle;
+}
 
 // Aliments qui comptent pour plus d'une unite dans le total sur 30
 // (cle = nom en minuscules ; valeur = nombre de points). Par defaut 1.
 const PONDERATION_ALIMENTS = {
-  "agar-agar": 2,
-
   // Herbes aromatiques : 0.25 point
   "menthe": 0.25, "basilic": 0.25, "thym": 0.25, "romarin": 0.25,
   "persil": 0.25, "coriandre": 0.25, "ciboulette": 0.25, "origan": 0.25,
@@ -778,6 +1020,7 @@ const VITAMINS_ALIMENTS = {
   "noix de macadamia": ["E"], "noix de pécan": ["E"], "noix du brésil": ["E"],
   "pignon de pin": ["E"], "pistache": ["E","B9"], "avoine": ["B9"],
   "blé": ["B9"], "maïs": ["A"], "quinoa": ["B9"], "soja": ["B9","K"],
+  "wakame": ["A","K"], "nori": ["A","C"], "kombu": ["K","B9"],
   "edamame": ["B9","K","C"], "capucine": ["C"], "fleur d'ail": ["C"],
   "fleur d'hibiscus": ["C"], "fleur de courgette": ["A"],
   "fleur de sureau": ["C"], "pâquerette": ["C"], "pensée": ["C"],
@@ -789,6 +1032,83 @@ const VITAMINS_ALIMENTS = {
   "baie de sureau": ["C"], "argousier": ["C","E"], "gingembre": ["C"],
   "ortie": ["A","C","K"], "pissenlit": ["A","C","K"], "fenugrec": ["B9"]
 };
+
+// Traduction des noms d'aliments (cle = nom francais canonique en
+// minuscules ; valeur = nom affiche en anglais). Les donnees internes
+// (semaine, liste, vitamines, ponderation) restent toujours en francais ;
+// seul l'affichage change selon la langue choisie. Un aliment ajoute
+// manuellement par l'utilisateur et absent d'ici s'affiche simplement
+// dans son nom d'origine, dans les deux langues.
+const NOMS_ALIMENTS_EN = {
+  "abricot":"Apricot","ail":"Garlic","ananas":"Pineapple","artichaut":"Artichoke",
+  "asperge":"Asparagus","aubergine":"Eggplant","avocat":"Avocado","bambou":"Bamboo shoot",
+  "banane":"Banana","betterave":"Beet","blette":"Swiss chard","brocoli":"Broccoli",
+  "cantaloup":"Cantaloupe","carotte":"Carrot","céleri branche":"Celery",
+  "céleri rave":"Celeriac","cerise":"Cherry","champignon de paris":"Button mushroom",
+  "chou blanc":"White cabbage","chou fleur":"Cauliflower","chou rouge":"Red cabbage",
+  "chou-rave":"Kohlrabi","chou de bruxelles":"Brussels sprout","citron":"Lemon",
+  "citrouille":"Pumpkin","clémentine":"Clementine","concombre":"Cucumber","coing":"Quince",
+  "cornichon":"Gherkin","courge butternut":"Butternut squash","courgette":"Zucchini",
+  "cresson":"Watercress","datte":"Date","echalote":"Shallot","endive":"Endive",
+  "épinard":"Spinach","fenouil":"Fennel","figue":"Fig","fraise":"Strawberry",
+  "framboise":"Raspberry","fruit de la passion":"Passion fruit","goyave":"Guava",
+  "grenade":"Pomegranate","groseille":"Redcurrant","haricot vert":"Green bean",
+  "kaki":"Persimmon","kiwi":"Kiwi","laitue":"Lettuce","lentille verte":"Green lentil",
+  "litchi":"Lychee","mâche":"Lamb's lettuce","mandarine":"Mandarin","mangue":"Mango",
+  "melon":"Melon","mirabelle":"Mirabelle plum","mûre":"Blackberry","myrtille":"Blueberry",
+  "navet":"Turnip","nectarine":"Nectarine","noix de coco":"Coconut","oignon":"Onion",
+  "olive":"Olive","orange":"Orange","pamplemousse":"Grapefruit","panais":"Parsnip",
+  "papaye":"Papaya","pastèque":"Watermelon","patate douce":"Sweet potato","pêche":"Peach",
+  "petit pois":"Pea","poire":"Pear","poireau":"Leek","pois chiche":"Chickpea",
+  "pois mange-tout":"Snow pea","poivron":"Bell pepper","pomme":"Apple",
+  "pomme de terre":"Potato","potiron":"Winter squash","prune":"Plum","pruneau":"Prune",
+  "quetsche":"Damson plum","radis":"Radish","daikon":"Daikon radish","raisin":"Grape",
+  "rhubarbe":"Rhubarb","roquette":"Arugula","rutabaga":"Rutabaga",
+  "salade verte":"Green salad","salsifis":"Salsify","tomate":"Tomato",
+  "topinambour":"Jerusalem artichoke","yuzu":"Yuzu",
+
+  "amande":"Almond","cacahuète":"Peanut","châtaigne":"Chestnut","faîne":"Beechnut",
+  "noisette":"Hazelnut","noix":"Walnut","noix de cajou":"Cashew",
+  "noix de macadamia":"Macadamia nut","noix de pécan":"Pecan",
+  "noix du brésil":"Brazil nut","pignon de pin":"Pine nut","pistache":"Pistachio",
+
+  "avoine":"Oat","blé":"Wheat","boulgour":"Bulgur","epeautre":"Spelt","kamut":"Kamut",
+  "maïs":"Corn","millet":"Millet","orge":"Barley","quinoa":"Quinoa","riz":"Rice",
+  "sarrasin":"Buckwheat","seigle":"Rye","semoule":"Semolina",
+
+  "soja":"Soybean","edamame":"Edamame","wakame":"Wakame","nori":"Nori","kombu":"Kombu",
+
+  "bourrache":"Borage","capucine":"Nasturtium","fleur d'ail":"Garlic flower",
+  "fleur d'hibiscus":"Hibiscus flower","fleur de camomille":"Chamomile flower",
+  "fleur de courgette":"Zucchini flower","fleur de lavande":"Lavender flower",
+  "fleur de sureau":"Elderflower","pâquerette":"Daisy","pensée":"Pansy",
+  "rose comestible":"Edible rose","souci (calendula)":"Marigold (calendula)",
+  "violette":"Violet",
+
+  "menthe":"Mint","basilic":"Basil","thym":"Thyme","romarin":"Rosemary",
+  "persil":"Parsley","coriandre":"Cilantro","ciboulette":"Chives","origan":"Oregano",
+  "sauge":"Sage","estragon":"Tarragon","aneth":"Dill","laurier":"Bay leaf",
+  "marjolaine":"Marjoram","verveine":"Verbena","mélisse":"Lemon balm",
+
+  "poivre noir":"Black pepper","poivre blanc":"White pepper","poivre vert":"Green peppercorn",
+  "poivre rose":"Pink peppercorn","baie de genièvre":"Juniper berry",
+  "piment":"Chili pepper","citronnelle":"Lemongrass","baie de goji":"Goji berry",
+  "canneberge":"Cranberry","airelle":"Bilberry","baie de sureau":"Elderberry",
+  "argousier":"Sea buckthorn","agar-agar":"Agar-agar",
+
+  "tilleul":"Linden (lime blossom)","camomille":"Chamomile","thé vert":"Green tea",
+  "thé noir":"Black tea","thé blanc":"White tea","thé oolong":"Oolong tea",
+  "rooibos":"Rooibos","maté":"Yerba mate","gingembre":"Ginger","réglisse":"Licorice",
+  "anis étoilé":"Star anise","cannelle":"Cinnamon","eucalyptus":"Eucalyptus",
+  "valériane":"Valerian","passiflore":"Passionflower","ortie":"Nettle",
+  "pissenlit":"Dandelion","bardane":"Burdock","fenugrec":"Fenugreek",
+  "achillée millefeuille":"Yarrow",
+};
+
+function nomAffiche(aliment) {
+  if (langueActuelle !== "en") return aliment;
+  return NOMS_ALIMENTS_EN[aliment.trim().toLowerCase()] || aliment;
+}
 
 const ALIMENTS_PAR_DEFAUT = [
   "Abricot","Ail","Ananas","Artichaut","Asperge","Aubergine","Avocat","Bambou","Banane",
@@ -810,7 +1130,7 @@ const ALIMENTS_PAR_DEFAUT = [
   "Noix de macadamia","Noix de pécan","Noix du Brésil","Pignon de pin","Pistache",
   "Avoine","Blé","Boulgour","Epeautre","Kamut","Maïs","Millet","Orge",
   "Quinoa","Riz","Sarrasin","Seigle","Semoule",
-  "Soja","Edamame",
+  "Soja","Edamame","Wakame","Nori","Kombu",
   "Bourrache","Capucine","Fleur d'ail","Fleur d'hibiscus","Fleur de camomille",
   "Fleur de courgette","Fleur de lavande","Fleur de sureau","Pâquerette",
   "Pensée","Rose comestible","Souci (Calendula)","Violette",
@@ -1009,8 +1329,7 @@ function obtenirVitamines(aliment) {
 }
 
 function libelleVitamine(code) {
-  const trouve = VITAMINES_SUIVIES.find(v => v.code === code);
-  return trouve ? trouve.label : code;
+  return t("vitamine" + code);
 }
 
 function creerElementBadgesVitamines(aliment) {
@@ -1049,7 +1368,7 @@ function calculerCouvertureVitamines() {
       const present = jourListe.some(aliment => obtenirVitamines(aliment).includes(v.code));
       if (present) joursCouverts++;
     });
-    return { code: v.code, label: v.label, joursCouverts };
+    return { code: v.code, label: libelleVitamine(v.code), joursCouverts };
   });
 }
 
@@ -1061,7 +1380,7 @@ function mettreAJourVitaminesSemaine() {
     const ligne = document.createElement("div");
     ligne.className = "ligne-vitamine";
     ligne.innerHTML = `
-      <div class="entete-vitamine"><span>${v.label}</span><span class="nb">${v.joursCouverts} / 7 jours</span></div>
+      <div class="entete-vitamine"><span>${v.label}</span><span class="nb">${t("joursSur7", { n: v.joursCouverts })}</span></div>
       <div class="barre-fond"><div class="barre-remplie" style="width:${pourcentage}%"></div></div>
     `;
     conteneur.appendChild(ligne);
@@ -1118,8 +1437,8 @@ function libelleDateJour(indice) {
   const date = new Date();
   date.setHours(0, 0, 0, 0);
   date.setDate(date.getDate() - decalageJours);
-  const libelle = date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-  return libelle + (indice === 6 ? " (aujourd'hui)" : "");
+  const libelle = date.toLocaleDateString(t("localeDate"), { weekday: "long", day: "numeric", month: "long" });
+  return libelle + (indice === 6 ? t("aujourdhui") : "");
 }
 
 function mettreAJourEntetesJours() {
@@ -1138,11 +1457,11 @@ function rafraichirTout() {
       const item = document.createElement("div");
       item.className = "item-aliment";
       const span = document.createElement("span");
-      span.textContent = aliment;
+      span.textContent = nomAffiche(aliment);
       const badgesVitamines = creerElementBadgesVitamines(aliment);
       const btn = document.createElement("button");
       btn.textContent = "✕";
-      btn.title = "Supprimer";
+      btn.title = t("boutonSupprimer");
       btn.onclick = () => supprimerAliment(i, position);
       item.appendChild(span);
       if (badgesVitamines) item.appendChild(badgesVitamines);
@@ -1177,16 +1496,16 @@ function mettreAJourCompteur() {
 function mettreAJourAlimentsPerdusHistorique() {
   const el = document.getElementById("texteAlimentsPerdusHistorique");
   el.textContent = alimentsPerdusHistorique.length
-    ? alimentsPerdusHistorique.join(", ")
-    : "Aucun aliment perdu au dernier décalage.";
+    ? alimentsPerdusHistorique.map(nomAffiche).join(", ")
+    : t("alerteHistoriqueVide");
 }
 
 function mettreAJourAlimentsAPerdre() {
   const liste = calculerAlimentsAPerdre();
   const el = document.getElementById("texteAlimentsAPerdre");
   el.textContent = liste.length
-    ? liste.join(", ")
-    : "Aucun aliment ne sera perdu au prochain décalage.";
+    ? liste.map(nomAffiche).join(", ")
+    : t("alerteAvenirVide");
 }
 
 /* ---------- Suppression d'un aliment ---------- */
@@ -1205,7 +1524,7 @@ function normaliserTexte(s) {
 
 function ouvrirModaleAjout(indiceJour) {
   jourCibleModale = indiceJour;
-  document.getElementById("titreModaleAjout").textContent = `Ajouter un aliment — ${libelleDateJour(indiceJour)}`;
+  document.getElementById("titreModaleAjout").textContent = t("titreModaleAvecDate", { date: libelleDateJour(indiceJour) });
   const champ = document.getElementById("champRechercheModale");
   champ.value = "";
   document.getElementById("fondModaleAjout").classList.add("visible");
@@ -1220,13 +1539,14 @@ function fermerModaleAjout() {
 
 function filtrerModale() {
   const saisie = normaliserTexte(document.getElementById("champRechercheModale").value.trim());
-  const triee = [...listeAliments].sort((a,b) => a.localeCompare(b, "fr"));
+  const langueTri = langueActuelle === "en" ? "en" : "fr";
+  const triee = [...listeAliments].sort((a,b) => nomAffiche(a).localeCompare(nomAffiche(b), langueTri));
   let resultats;
   if (saisie === "") {
     resultats = triee;
   } else {
-    const commenceParPr = triee.filter(a => normaliserTexte(a).startsWith(saisie));
-    const contient = triee.filter(a => normaliserTexte(a).includes(saisie) && !commenceParPr.includes(a));
+    const commenceParPr = triee.filter(a => normaliserTexte(nomAffiche(a)).startsWith(saisie));
+    const contient = triee.filter(a => normaliserTexte(nomAffiche(a)).includes(saisie) && !commenceParPr.includes(a));
     resultats = commenceParPr.concat(contient);
   }
   resultatsModaleActuels = resultats;
@@ -1236,14 +1556,14 @@ function filtrerModale() {
   ul.innerHTML = "";
   resultats.forEach((aliment, idx) => {
     const li = document.createElement("li");
-    li.textContent = aliment;
+    li.textContent = nomAffiche(aliment);
     if (idx === indexSurvoleModale) li.classList.add("survole");
-    li.onclick = () => { indexSurvoleModale = idx; document.getElementById("champRechercheModale").value = aliment; validerModaleAjout(); };
+    li.onclick = () => { indexSurvoleModale = idx; document.getElementById("champRechercheModale").value = nomAffiche(aliment); validerModaleAjout(); };
     ul.appendChild(li);
   });
 
   document.getElementById("infoResultatsModale").textContent =
-    resultats.length ? `${resultats.length} résultat(s)` : "Aucun aliment ne correspond dans la liste";
+    resultats.length ? t("resultatsCount", { n: resultats.length }) : t("aucunResultat");
 }
 
 function deplacerSurvolModale(delta) {
@@ -1256,19 +1576,20 @@ function deplacerSurvolModale(delta) {
 
 function validerModaleAjout() {
   const saisie = document.getElementById("champRechercheModale").value.trim();
-  const correspondance = listeAliments.find(a => normaliserTexte(a) === normaliserTexte(saisie));
+  const correspondance = listeAliments.find(
+    a => normaliserTexte(a) === normaliserTexte(saisie) || normaliserTexte(nomAffiche(a)) === normaliserTexte(saisie)
+  );
 
   if (!correspondance) {
-    afficherAvertissement("Aliment inconnu",
-      "Cet aliment n'existe pas dans la liste.\nChoisis-le dans les résultats proposés, ou ajoute-le d'abord depuis la page Paramètres.");
+    afficherAvertissement(t("avertissementInconnuTitre"), t("avertissementInconnuMessage"));
     return;
   }
 
   const indiceJour = jourCibleModale;
   const dejaPresent = jours[indiceJour].some(a => a.toLowerCase() === correspondance.toLowerCase());
   if (dejaPresent) {
-    afficherAvertissement("Aliment déjà ajouté",
-      `« ${correspondance} » a déjà été ajouté pour le ${libelleDateJour(indiceJour)}.`);
+    afficherAvertissement(t("avertissementDoublonTitre"),
+      t("avertissementDoublonMessage", { aliment: nomAffiche(correspondance), date: libelleDateJour(indiceJour) }));
     return; // la modale reste ouverte pour choisir autre chose
   }
 
@@ -1292,10 +1613,18 @@ function fermerModaleAvertissement() {
 /* ---------- Page Parametres : gestion de la liste d'aliments ---------- */
 
 function rafraichirListeGestion() {
-  document.getElementById("compteurListeAliments").textContent = listeAliments.length;
+  // Correction : la phrase traduite ci-dessous contient deja le nombre
+  // d'aliments ({{n}}) et remplace tout le contenu du paragraphe ; il ne
+  // faut donc plus ecrire dans le span #compteurListeAliments, qui
+  // disparait a la premiere reecriture (sinon : erreur au rafraichissement
+  // suivant, et la page Parametres se fige).
+  const descEl = document.getElementById("descListeAliments");
+  if (descEl) descEl.textContent = t("descListeCompte", { n: listeAliments.length });
+
   const filtre = normaliserTexte(document.getElementById("champRechercheParam").value.trim());
-  const triee = [...listeAliments].sort((a,b) => a.localeCompare(b, "fr"));
-  const visibles = filtre ? triee.filter(a => normaliserTexte(a).includes(filtre)) : triee;
+  const langueTri = langueActuelle === "en" ? "en" : "fr";
+  const triee = [...listeAliments].sort((a,b) => nomAffiche(a).localeCompare(nomAffiche(b), langueTri));
+  const visibles = filtre ? triee.filter(a => normaliserTexte(nomAffiche(a)).includes(filtre)) : triee;
 
   const ul = document.getElementById("listeGestionAliments");
   ul.innerHTML = "";
@@ -1304,15 +1633,15 @@ function rafraichirListeGestion() {
     const cle = aliment.toLowerCase();
     const poids = PONDERATION_ALIMENTS[cle];
     const span = document.createElement("span");
-    span.textContent = aliment;
+    span.textContent = nomAffiche(aliment);
     if (poids && poids !== 1) {
       const badge = document.createElement("span");
       badge.className = "compte-pondere";
-      badge.textContent = `compte pour ${poids}`;
+      badge.textContent = t("compteBadge", { poids });
       span.appendChild(badge);
     }
     const btn = document.createElement("button");
-    btn.textContent = "Supprimer";
+    btn.textContent = t("boutonSupprimer");
     btn.onclick = () => supprimerAlimentDeLaListe(aliment);
     li.appendChild(span);
     const badgesVitamines = creerElementBadgesVitamines(aliment);
@@ -1328,13 +1657,13 @@ function ajouterAlimentDepuisParametres() {
   const msg = document.getElementById("messageAjoutParam");
 
   if (!valeur) {
-    msg.textContent = "Écris un nom d'aliment avant d'ajouter.";
+    msg.textContent = t("msgEcrisNom");
     msg.className = "erreur";
     return;
   }
   const existeDeja = listeAliments.some(a => a.toLowerCase() === valeur.toLowerCase());
   if (existeDeja) {
-    msg.textContent = `« ${valeur} » est déjà dans la liste.`;
+    msg.textContent = t("msgDejaListe", { aliment: valeur });
     msg.className = "erreur";
     return;
   }
@@ -1343,7 +1672,7 @@ function ajouterAlimentDepuisParametres() {
   sauvegarderListeAliments();
   rafraichirListeGestion();
   champ.value = "";
-  msg.textContent = `« ${valeur} » a été ajouté à la liste.`;
+  msg.textContent = t("msgAjouteListe", { aliment: valeur });
   msg.className = "ok";
 }
 
@@ -1365,7 +1694,7 @@ function supprimerAlimentDeLaListe(aliment) {
 }
 
 function reinitialiserListeParDefaut() {
-  const ok = confirm("Remettre la liste des aliments telle qu'à l'origine ?\nTes ajouts personnels dans cette liste seront perdus (la semaine en cours n'est pas touchée).");
+  const ok = confirm(t("confirmReset"));
   if (!ok) return;
   sauvegarderAlimentsSupprimes([]); // on oublie les suppressions : vrai retour a zero
   listeAliments = [...ALIMENTS_PAR_DEFAUT];
@@ -1395,7 +1724,7 @@ function exporterSauvegarde() {
   URL.revokeObjectURL(url);
 
   const zone = document.getElementById("zoneMessageParam");
-  zone.textContent = "Sauvegarde exportée.";
+  zone.textContent = t("msgExportOk");
   zone.className = "ok";
 }
 
@@ -1411,7 +1740,7 @@ function importerSauvegarde(event) {
       if (!paquet || paquet.type !== "suivi_alimentaire_sauvegarde" || !paquet.donnees) {
         throw new Error("format invalide");
       }
-      const ok = confirm("Importer cette sauvegarde va remplacer la liste d'aliments et la semaine en cours. Continuer ?");
+      const ok = confirm(t("confirmImport"));
       if (!ok) { event.target.value = ""; return; }
 
       listeAliments = Array.isArray(paquet.listeAliments) && paquet.listeAliments.length
@@ -1428,10 +1757,10 @@ function importerSauvegarde(event) {
       rafraichirTout();
       rafraichirListeGestion();
 
-      zone.textContent = "Sauvegarde importée avec succès.";
+      zone.textContent = t("msgImportOk");
       zone.className = "ok";
     } catch (e) {
-      zone.textContent = "Ce fichier ne semble pas être une sauvegarde valide.";
+      zone.textContent = t("msgImportErreur");
       zone.className = "erreur";
     }
     event.target.value = "";
@@ -1440,20 +1769,23 @@ function importerSauvegarde(event) {
 }
 
 function reinitialiserSemaine() {
-  const ok = confirm("Vider tous les aliments de la semaine en cours ? Cette action est irréversible.");
+  const ok = confirm(t("confirmViderSemaine"));
   if (!ok) return;
   jours = [[],[],[],[],[],[],[]];
   alimentsPerdusHistorique = [];
   sauvegarderDonnees();
   rafraichirTout();
   const zone = document.getElementById("zoneMessageParam");
-  zone.textContent = "La semaine en cours a été vidée.";
+  zone.textContent = t("msgSemaineVidee");
   zone.className = "ok";
 }
 
 /* ---------- Initialisation ---------- */
 
 function initialiser() {
+  langueActuelle = chargerLangue();
+  appliquerTraductionsStatiques();
+
   listeAliments = chargerListeAliments();
   const donnees = chargerDonnees();
   jours = donnees.jours;
@@ -1467,6 +1799,8 @@ function initialiser() {
 
   document.getElementById("boutonAjoutJour").onclick = () => ouvrirModaleAjout(6);
 
+  document.getElementById("selecteurLangue").addEventListener("change", (e) => changerLangue(e.target.value));
+
   document.getElementById("champRechercheModale").addEventListener("input", filtrerModale);
   document.getElementById("champRechercheModale").addEventListener("keydown", (e) => {
     if (e.key === "ArrowDown") { e.preventDefault(); deplacerSurvolModale(1); }
@@ -1474,7 +1808,7 @@ function initialiser() {
     else if (e.key === "Enter") {
       e.preventDefault();
       if (indexSurvoleModale >= 0 && resultatsModaleActuels[indexSurvoleModale]) {
-        document.getElementById("champRechercheModale").value = resultatsModaleActuels[indexSurvoleModale];
+        document.getElementById("champRechercheModale").value = nomAffiche(resultatsModaleActuels[indexSurvoleModale]);
       }
       validerModaleAjout();
     }
@@ -1498,6 +1832,19 @@ function initialiser() {
 }
 
 document.addEventListener("DOMContentLoaded", initialiser);
+
+// Enregistrement du service worker (fonctionnement hors-ligne / installation).
+// Echoue silencieusement si indisponible (ex: ouverture directe du fichier
+// en double-clic, protocole file:// - les navigateurs exigent alors un
+// serveur local ou un hebergement en https pour activer cette fonction).
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {
+      // Pas grave : l'application continue de fonctionner normalement,
+      // simplement sans mise en cache hors-ligne ni installation possible.
+    });
+  });
+}
 </script>
 
 </body>
